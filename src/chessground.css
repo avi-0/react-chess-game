@@ -1,3 +1,51 @@
 cg-board {
     background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAASwAQMAAADR7yGMAAAABlBMVEW5u9/d5/JGXzvAAAADEklEQVR42u3cwQnDUAxEwQ8uwCW5dZeUAgxJAe9ijHMQzB6FJKaCXd/kWsnerbNbL75aWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYj1jN1sNPt45u/fUVFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhbWnVcd6WnGwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwprLavQ0Y2FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWHNZXWkpxkLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLay6r0dOMhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhTWX1ZGeZiwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCysuaxGTzMWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYW1ljWD+8iRPOPKpVuAAAAAElFTkSuQmCC);
 }
+
+.cg-wrap piece.pawn.white {
+    background-image: url('/images/pw.svg');
+}
+
+.cg-wrap piece.bishop.white {
+    background-image: url('/images/bw.svg');
+}
+
+.cg-wrap piece.knight.white {
+    background-image: url('/images/nw.svg');
+}
+
+.cg-wrap piece.rook.white {
+    background-image: url('/images/rw.svg');
+}
+
+.cg-wrap piece.queen.white {
+    background-image: url('/images/qw.svg');
+}
+
+.cg-wrap piece.king.white {
+    background-image: url('/images/kw.svg');
+}
+
+.cg-wrap piece.pawn.black {
+    background-image: url('/images/pb.svg');
+}
+
+.cg-wrap piece.bishop.black {
+    background-image: url('/images/bb.svg');
+}
+
+.cg-wrap piece.knight.black {
+    background-image: url('/images/nb.svg');
+}
+
+.cg-wrap piece.rook.black {
+    background-image: url('/images/rb.svg');
+}
+
+.cg-wrap piece.queen.black {
+    background-image: url('/images/qb.svg');
+}
+
+.cg-wrap piece.king.black {
+    background-image: url('/images/kb.svg');
+}
