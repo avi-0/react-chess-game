@@ -1,6 +1,13 @@
 import { Chessboard } from 'react-chessboard'
 import { useState } from 'react'
 import './App.css'
+import Chessground from '@react-chess/chessground'
+
+import "chessground/assets/chessground.base.css";
+import "chessground/assets/chessground.brown.css";
+import "chessground/assets/chessground.cburnett.css";
+import "./chessground.css";
+
 
 function App() {
   const [count, setCount] = useState(0)
@@ -8,7 +15,19 @@ function App() {
   return (
     <div className='App'>
       <div className='chessboard'>
-        <Chessboard />
+        <Chessground
+          contained={true}
+          config={{
+            coordinates: false,
+            draggable: {
+              enabled: false,
+            },
+            movable: {
+              free: true,
+              showDests: true,
+            }
+          }}
+        />
       </div>
       
     </div>
