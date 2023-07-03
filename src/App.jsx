@@ -14,22 +14,26 @@ function App() {
 
   return (
     <div className='App'>
-      <div className='chessboard'>
-        <Chessground
-          contained={true}
-          config={{
-            coordinates: false,
-            draggable: {
-              enabled: false,
-            },
-            movable: {
-              free: true,
-              showDests: true,
-            }
-          }}
-        />
+      <div className="chessboard-row-wrapper">
+        <div className='chessboard-column-wrapper'>
+          <div className='chessboard-wrapper'>
+            <Chessground
+              className='Chessboard'
+              contained={true}
+              config={{
+                coordinates: false,
+                draggable: {
+                  enabled: false,
+                },
+                movable: {
+                  free: true,
+                  showDests: true,
+                }
+              }}
+            />
+          </div>
+        </div>
       </div>
-      
     </div>
   )
 }
