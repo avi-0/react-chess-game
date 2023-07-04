@@ -22,7 +22,7 @@
   justify-content: center;
 }
 
-.chessboard-wrapper {
+.chessboard {
   flex: 0 1 auto;
   width: auto;
   min-width: 0;

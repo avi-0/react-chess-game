@@ -1,5 +1,5 @@
-import Chessground from '@react-chess/chessground';
-import { useState } from 'react';
+import { Chessground as ChessgroundApi } from 'chessground';
+import { useEffect, useRef, useState } from 'react';
 
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
@@ -7,53 +7,85 @@ import "chessground/assets/chessground.cburnett.css";
 import "./Chessboard.css";
 import { Chess, SQUARES } from 'chess.js';
 
+function getDests(chess) {
+    const dests = new Map();
+
+    if (chess) {
+        SQUARES.forEach(s => {
+            const ms = chess.moves({ square: s, verbose: true });
+            if (ms.length) dests.set(s, ms.map(m => m.to));
+        });
+    }
+    
+    return dests;
+}
+
+function makePermissiveFen(api) {
+    const state = api.state;
+
+    const fen = `${api.getFen()} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
+
+    console.log(fen);
+
+    return fen;
+}
+
 export default function Chessboard() {
-    const [chess, setChess] = useState(new Chess());
+    const ref = useRef(null);
+    const [api, setApi] = useState(null);
+    const [fen, setFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
 
     function onMoved(orig, dest, meta) {
         moveSound.play();
 
-        setChess((chess) => {
-            const newChess = new Chess(chess.fen());
-            newChess.move({from: orig, to: dest});
-            return newChess;
-        })
+        setFen(makePermissiveFen(api));
     }
 
-    function getDests() {
-        const dests = new Map();
-        SQUARES.forEach(s => {
-          const ms = chess.moves({square: s, verbose: true});
-          if (ms.length) dests.set(s, ms.map(m => m.to));
-        });
-        return dests;
-      }
+    let chess = new Chess();
+    try {
+        chess.load(fen);
+    } catch {
+        chess = null;
+    }
+    
+
+    const config = {
+        coordinates: false,
+        draggable: {
+            enabled: false,
+        },
+        movable: {
+            free: true,
+            showDests: true,
+            dests: getDests(chess),
+            events: {
+                after: (orig, dest, meta) => onMoved(orig, dest, meta),
+            },
+        }
+    }
+
+    useEffect(() => {
+        if (ref && ref.current && !api) {
+            const chessgroundApi = ChessgroundApi(ref.current, {
+                animation: { enabled: true, duration: 200 },
+                ...config,
+            });
+            setApi(chessgroundApi);
+        } else if (ref && ref.current && api) {
+            api.set(config);
+        }
+    }, [ref]);
+
+    useEffect(() => {
+        api?.set(config);
+    }, [api, config]);
 
     return (
         <div className="chessboard-row-wrapper">
             <div className='chessboard-column-wrapper'>
-                <div className='chessboard-wrapper'>
-                    <Chessground
-                        className='Chessboard'
-                        contained={true}
-                        config={{
-                            coordinates: false,
-                            draggable: {
-                                enabled: false,
-                            },
-                            movable: {
-                                free: true,
-                                showDests: true,
-                                dests: getDests(),
-                                events: {
-                                    after: (orig, dest, meta) => onMoved(orig, dest, meta),
-                                },
-                            }
-                        }}
-                    />
-                </div>
+                <div ref={ref} className='chessboard' />
             </div>
         </div>
     )
