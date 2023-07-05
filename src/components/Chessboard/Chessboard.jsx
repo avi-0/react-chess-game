@@ -62,7 +62,7 @@ export default function Chessboard() {
     const config = {
         coordinates: false,
         draggable: {
-            enabled: false,
+            enabled: true,
         },
         movable: {
             free: true,
