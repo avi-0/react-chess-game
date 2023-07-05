@@ -26,9 +26,15 @@ function makePermissiveFen(api) {
     const fen = `${api.getFen()} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
 
     console.log(fen);
-
     return fen;
 }
+
+function flipColor(color) {
+    return color == 'white' ? 'black' : 'white';
+}
+
+
+
 
 export default function Chessboard() {
     const ref = useRef(null);
@@ -40,6 +46,9 @@ export default function Chessboard() {
     function onMoved(orig, dest, meta) {
         moveSound.play();
 
+        // same player might have moved twice, but pass the "legal" move to other player anyway
+        api.state.turnColor = flipColor(api.state.pieces.get(dest).color)
+
         setFen(makePermissiveFen(api));
     }
 
@@ -49,7 +58,6 @@ export default function Chessboard() {
     } catch {
         chess = null;
     }
-    
 
     const config = {
         coordinates: false,
