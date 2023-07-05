@@ -1,4 +1,5 @@
 import { Chessground as ChessgroundApi } from 'chessground';
+import { read as readFen } from 'chessground/src/fen'
 import { useEffect, useRef, useState } from 'react';
 
 import "chessground/assets/chessground.base.css";
@@ -16,7 +17,7 @@ function getDests(chess) {
             if (ms.length) dests.set(s, ms.map(m => m.to));
         });
     }
-    
+
     return dests;
 }
 
@@ -36,11 +37,9 @@ function flipColor(color) {
 
 
 
-export default function Chessboard() {
+export default function Chessboard({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", setFen = () => {}}) {
     const ref = useRef(null);
     const [api, setApi] = useState(null);
-    const [fen, setFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
 
     function onMoved(orig, dest, meta) {
@@ -58,7 +57,6 @@ export default function Chessboard() {
     } catch {
         chess = null;
     }
-
     const config = {
         coordinates: false,
         draggable: {
@@ -89,6 +87,12 @@ export default function Chessboard() {
     useEffect(() => {
         api?.set(config);
     }, [api, config]);
+
+    useEffect(() => {
+        if (api) {
+            api.state.pieces = readFen(fen);
+        }
+    }, [api, fen])
 
     return (
         <div className="chessboard-row-wrapper">

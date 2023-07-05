@@ -3,6 +3,10 @@
   height: 100%;
 
   padding: 32px;
+
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  grid-column-gap: 16px;
 }
 
 .chessboard-row-wrapper {
