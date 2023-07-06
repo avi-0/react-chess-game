@@ -2,21 +2,32 @@ import { useState } from 'react'
 import './App.css'
 
 import Chessboard from './components/Chessboard/Chessboard';
+import { flipColor } from './util';
 
-const startingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+const startingPosition = {
+    fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+    orientation: "white",
+}
 
 function App() {
     const [state, setState] = useState(startingPosition);
 
-    function onResetClicked() {
+    function reset() {
         setState(startingPosition);
+    }
+
+    function flip() {
+        setState(state => {
+            return {...state, orientation: flipColor(state.orientation)}
+        })
     }
 
     return (
         <div className='App'>
             <Chessboard state={state} setState={setState} />
             <div className='App-sidebar'>
-                <button onClick={onResetClicked}>Reset</button>
+                <button onClick={reset}>Reset</button>
+                <button onClick={flip}>Flip</button>
             </div>
         </div>
     )

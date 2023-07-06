@@ -7,6 +7,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "./Chessboard.css";
 import { Chess, SQUARES } from 'chess.js';
+import { flipColor } from '../../util';
 
 function getDests(chess) {
     const dests = new Map();
@@ -30,14 +31,7 @@ function makePermissiveFen(api) {
     return fen;
 }
 
-function flipColor(color) {
-    return color == 'white' ? 'black' : 'white';
-}
-
-
-
-
-export default function Chessboard({ state = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", setState = () => {}}) {
+export default function Chessboard({ state, setState = () => { } }) {
     const ref = useRef(null);
     const [api, setApi] = useState(null);
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
@@ -48,17 +42,24 @@ export default function Chessboard({ state = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP
         // same player might have moved twice, but pass the "legal" move to other player anyway
         api.state.turnColor = flipColor(api.state.pieces.get(dest).color)
 
-        setState(makePermissiveFen(api));
+        setState(state => {
+            return { ...state, fen: api.getFen() }
+        });
     }
 
+    // make a new Chess object to get legal moves for current position
     let chess = new Chess();
     try {
-        chess.load(state);
+        chess.load(makePermissiveFen(api));
     } catch {
         chess = null;
     }
     const dests = getDests(chess);
     const config = {
+        fen: state.fen,
+        orientation: state.orientation,
+
+        animation: { enabled: true, duration: 200 },
         coordinates: false,
         draggable: {
             enabled: true,
@@ -75,25 +76,14 @@ export default function Chessboard({ state = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP
 
     useEffect(() => {
         if (ref && ref.current && !api) {
-            const chessgroundApi = ChessgroundApi(ref.current, {
-                animation: { enabled: true, duration: 200 },
-                ...config,
-            });
+            const chessgroundApi = ChessgroundApi(ref.current, config);
             setApi(chessgroundApi);
-        } else if (ref && ref.current && api) {
-            api.set(config);
         }
     }, [ref]);
 
     useEffect(() => {
         api?.set(config);
     }, [api, config]);
-
-    useEffect(() => {
-        if (api) {
-            api.state.pieces = readFen(state);
-        }
-    }, [api, state])
 
     return (
         <div className="chessboard-row-wrapper">
