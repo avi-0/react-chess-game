@@ -37,7 +37,7 @@ function flipColor(color) {
 
 
 
-export default function Chessboard({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", setFen = () => {}}) {
+export default function Chessboard({ state = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", setState = () => {}}) {
     const ref = useRef(null);
     const [api, setApi] = useState(null);
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
@@ -48,15 +48,16 @@ export default function Chessboard({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
         // same player might have moved twice, but pass the "legal" move to other player anyway
         api.state.turnColor = flipColor(api.state.pieces.get(dest).color)
 
-        setFen(makePermissiveFen(api));
+        setState(makePermissiveFen(api));
     }
 
     let chess = new Chess();
     try {
-        chess.load(fen);
+        chess.load(state);
     } catch {
         chess = null;
     }
+    const dests = getDests(chess);
     const config = {
         coordinates: false,
         draggable: {
@@ -65,7 +66,7 @@ export default function Chessboard({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
         movable: {
             free: true,
             showDests: true,
-            dests: getDests(chess),
+            dests: dests,
             events: {
                 after: (orig, dest, meta) => onMoved(orig, dest, meta),
             },
@@ -90,9 +91,9 @@ export default function Chessboard({ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R
 
     useEffect(() => {
         if (api) {
-            api.state.pieces = readFen(fen);
+            api.state.pieces = readFen(state);
         }
-    }, [api, fen])
+    }, [api, state])
 
     return (
         <div className="chessboard-row-wrapper">

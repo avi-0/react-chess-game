@@ -6,16 +6,16 @@ import Chessboard from './components/Chessboard/Chessboard';
 const startingPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 function App() {
-    const [fen, setFen] = useState(startingPosition);
+    const [state, setState] = useState(startingPosition);
 
     function onResetClicked() {
-        setFen(startingPosition);
+        setState(startingPosition);
     }
 
     return (
         <div className='App'>
-            <Chessboard fen={fen} setFen={setFen} />
-            <div>
+            <Chessboard state={state} setState={setState} />
+            <div className='App-sidebar'>
                 <button onClick={onResetClicked}>Reset</button>
             </div>
         </div>
