@@ -26,7 +26,7 @@ function makePermissiveFen(state) {
     return `${state.fen} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
 }
 
-export default function Chessboard({ state, setState = () => { } }) {
+export default function Chessboard({ state, setState = () => {}, onMoved: onMovedProp = () => {}}) {
     const ref = useRef(null);
     const [api, setApi] = useState(null);
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
@@ -46,8 +46,10 @@ export default function Chessboard({ state, setState = () => { } }) {
             }
         });
 
-        // also play sounrds
+        // also play sounds
         moveSound.play();
+
+        onMovedProp();
     }
 
     // make a new Chess object to get legal moves for current position
