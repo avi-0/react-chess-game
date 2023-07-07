@@ -3,15 +3,16 @@ import './App.css'
 
 import Chessboard from './components/Chessboard/Chessboard';
 import { flipColor } from './util';
+import useStateWithHistory from './useStateWithHistory';
 
 const startingPosition = {
     fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
-    orientation: "white",
     turnColor: "white",
 }
 
 function App() {
-    const [state, setState] = useState(startingPosition);
+    const [state, setState, {back: undo, forward: redo}] = useStateWithHistory(startingPosition);
+    const [orientation, setOrientation] = useState("white");
     const [autoflip, setAutoflip] = useState(false); 
 
     function reset() {
@@ -19,20 +20,18 @@ function App() {
     }
 
     function flip() {
-        setState(state => {
-            return {...state, orientation: flipColor(state.orientation)}
-        })
+        setOrientation(orientation => flipColor(orientation));
     }
 
     function onMoved() {
         if (autoflip) {
-            flip()
+            flip();
         }
     }
 
     return (
         <div className='App'>
-            <Chessboard state={state} setState={setState} onMoved={onMoved}/>
+            <Chessboard state={state} setState={setState} orientation={orientation} onMoved={onMoved}/>
 
             <div className='App-sidebar'>
                 <button onClick={reset}>Reset</button>
@@ -42,6 +41,12 @@ function App() {
                     <input type="checkbox" checked={autoflip} onChange={e => setAutoflip(e.target.checked)}/>
                     Autoflip
                 </label>
+
+                <div>
+                    <hr/>
+                </div>
+                <button onClick={undo}>Undo</button>
+                <button onClick={redo}>Redo</button>
             </div>
         </div>
     )

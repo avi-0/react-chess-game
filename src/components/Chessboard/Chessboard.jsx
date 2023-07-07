@@ -26,7 +26,7 @@ function makePermissiveFen(state) {
     return `${state.fen} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
 }
 
-export default function Chessboard({ state, setState = () => {}, onMoved: onMovedProp = () => {}}) {
+export default function Chessboard({ state, setState = () => {}, orientation, onMoved: onMovedProp = () => {}}) {
     const ref = useRef(null);
     const [api, setApi] = useState(null);
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
@@ -62,8 +62,9 @@ export default function Chessboard({ state, setState = () => {}, onMoved: onMove
     const dests = getDests(chess);
     const config = {
         fen: state.fen,
-        orientation: state.orientation,
         turnColor: state.turnColor,
+
+        orientation: orientation,
 
         animation: { enabled: true, duration: 200 },
         coordinates: false,
