@@ -72,7 +72,7 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
             enabled: true,
         },
         movable: {
-            free: true,
+            free: false,
             showDests: true,
             dests: dests,
             events: {
