@@ -22,13 +22,8 @@ function getDests(chess) {
     return dests;
 }
 
-function makePermissiveFen(api) {
-    const state = api.state;
-
-    const fen = `${api.getFen()} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
-
-    console.log(fen);
-    return fen;
+function makePermissiveFen(state) {
+    return `${state.fen} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
 }
 
 export default function Chessboard({ state, setState = () => { } }) {
@@ -37,20 +32,28 @@ export default function Chessboard({ state, setState = () => { } }) {
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
 
     function onMoved(orig, dest, meta) {
-        moveSound.play();
+        // update state to reflect change!
 
-        // same player might have moved twice, but pass the "legal" move to other player anyway
-        api.state.turnColor = flipColor(api.state.pieces.get(dest).color)
+        // pass turn to other player
+        // (even if last move was made by the wrong player)
+        const turnColor = flipColor(api.state.pieces.get(dest).color)
 
         setState(state => {
-            return { ...state, fen: api.getFen() }
+            return {
+                ...state,
+                fen: api.getFen(),
+                turnColor: turnColor,
+            }
         });
+
+        // also play sounrds
+        moveSound.play();
     }
 
     // make a new Chess object to get legal moves for current position
     let chess = new Chess();
     try {
-        chess.load(makePermissiveFen(api));
+        chess.load(makePermissiveFen(state));
     } catch {
         chess = null;
     }
@@ -58,6 +61,7 @@ export default function Chessboard({ state, setState = () => { } }) {
     const config = {
         fen: state.fen,
         orientation: state.orientation,
+        turnColor: state.turnColor,
 
         animation: { enabled: true, duration: 200 },
         coordinates: false,

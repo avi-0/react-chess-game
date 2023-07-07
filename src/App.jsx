@@ -7,6 +7,7 @@ import { flipColor } from './util';
 const startingPosition = {
     fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
     orientation: "white",
+    turnColor: "white",
 }
 
 function App() {
