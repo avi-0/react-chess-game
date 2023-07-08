@@ -48,9 +48,7 @@ function App() {
                     Autoflip
                 </label>
 
-                <div>
-                    <hr/>
-                </div>
+                <div className="flexspace"/>
                 <button onClick={undo}>Undo</button>
                 <button onClick={redo}>Redo</button>
             </div>
