@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 
 import Chessboard from './components/Chessboard/Chessboard';
 import { flipColor } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
+import useTimeout from './hooks/useTimeout';
 
 const startingPosition = {
     fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
@@ -13,7 +14,12 @@ const startingPosition = {
 function App() {
     const [state, setState, {back: undo, forward: redo}] = useStateWithHistory(startingPosition, {capacity: 100});
     const [orientation, setOrientation] = useState("white");
-    const [autoflip, setAutoflip] = useState(false); 
+
+    const [autoflip, setAutoflip] = useState(false);
+    const { clear: autoflipClear, reset: autoflipReset } = useTimeout(() => flip(), 400);
+    useEffect(() => {
+        autoflipClear();
+    }, []);
 
     function reset() {
         setState(startingPosition);
@@ -25,7 +31,7 @@ function App() {
 
     function onMoved() {
         if (autoflip) {
-            flip();
+            autoflipReset();
         }
     }
 
