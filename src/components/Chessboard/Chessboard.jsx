@@ -7,7 +7,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "./Chessboard.css";
 import { Chess, SQUARES } from 'chess.js';
-import { flipColor } from '../../util';
+import { flipColor } from '../../chesslogic';
 
 function getDests(chess) {
     const dests = new Map();
@@ -76,7 +76,7 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
             showDests: true,
             dests: dests,
             events: {
-                after: (orig, dest, meta) => onMoved(orig, dest, meta),
+                after: onMoved,
             },
         }
     }

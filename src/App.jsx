@@ -2,8 +2,8 @@ import { useState } from 'react'
 import './App.css'
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { flipColor } from './util';
-import useStateWithHistory from './useStateWithHistory';
+import { flipColor } from './chesslogic';
+import useStateWithHistory from './hooks/useStateWithHistory';
 
 const startingPosition = {
     fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
@@ -11,7 +11,7 @@ const startingPosition = {
 }
 
 function App() {
-    const [state, setState, {back: undo, forward: redo}] = useStateWithHistory(startingPosition);
+    const [state, setState, {back: undo, forward: redo}] = useStateWithHistory(startingPosition, {capacity: 100});
     const [orientation, setOrientation] = useState("white");
     const [autoflip, setAutoflip] = useState(false); 
 
