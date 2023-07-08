@@ -15,7 +15,7 @@
 .App-sidebar {
   display: flex;
   flex-flow: column nowrap;
-  gap: 4px;
+  gap: 8px;
 }
 
 .chessboard-row-wrapper {

@@ -27,6 +27,6 @@ export function getMoves(chess) {
     return { dests, captures };
 }
 
-export function makePermissiveFen(state) {
+export function makeSimpleFen(state) {
     return `${state.fen} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
 }

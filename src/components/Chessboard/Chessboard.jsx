@@ -7,7 +7,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "./Chessboard.css";
 import { Chess } from 'chess.js';
-import { flipColor, getMoves, makePermissiveFen } from '../../chesslogic';
+import { flipColor, getMoves, makeSimpleFen } from '../../chesslogic';
 
 
 
@@ -20,8 +20,9 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
     // make a new Chess object to get legal moves for current position
     let chess = new Chess();
     try {
-        chess.load(makePermissiveFen(state));
+        chess.load(makeSimpleFen(state));
     } catch {
+        // chess.js errors on illegal positions, fuck it then
         chess = null;
     }
     const { dests, captures } = getMoves(chess);
