@@ -6,30 +6,25 @@ import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "./Chessboard.css";
-import { Chess, SQUARES } from 'chess.js';
-import { flipColor } from '../../chesslogic';
+import { Chess } from 'chess.js';
+import { flipColor, getMoves, makePermissiveFen } from '../../chesslogic';
 
-function getDests(chess) {
-    const dests = new Map();
 
-    if (chess) {
-        SQUARES.forEach(s => {
-            const ms = chess.moves({ square: s, verbose: true });
-            if (ms.length) dests.set(s, ms.map(m => m.to));
-        });
-    }
-
-    return dests;
-}
-
-function makePermissiveFen(state) {
-    return `${state.fen} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
-}
 
 export default function Chessboard({ state, setState = () => {}, orientation, onMoved: onMovedProp = () => {}}) {
     const ref = useRef(null);
     const [api, setApi] = useState(null);
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
+    const [captureSound, setCaptureSound] = useState(new Audio("/sounds/capture.mp3"));
+
+    // make a new Chess object to get legal moves for current position
+    let chess = new Chess();
+    try {
+        chess.load(makePermissiveFen(state));
+    } catch {
+        chess = null;
+    }
+    const { dests, captures } = getMoves(chess);
 
     function onMoved(orig, dest, meta) {
         // update state to reflect change!
@@ -48,19 +43,15 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
         });
 
         // also play sounds
-        moveSound.play();
+        if (captures.has(orig + dest)) {
+            captureSound.play()
+        } else {
+            moveSound.play();
+        }
 
         onMovedProp();
     }
 
-    // make a new Chess object to get legal moves for current position
-    let chess = new Chess();
-    try {
-        chess.load(makePermissiveFen(state));
-    } catch {
-        chess = null;
-    }
-    const dests = getDests(chess);
     const config = {
         fen: state.fen,
         turnColor: state.turnColor,

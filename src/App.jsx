@@ -49,6 +49,7 @@ function App() {
                 </label>
 
                 <div className="flexspace"/>
+                
                 <button onClick={undo}>Undo</button>
                 <button onClick={redo}>Redo</button>
             </div>
