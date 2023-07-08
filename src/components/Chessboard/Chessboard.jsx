@@ -43,6 +43,7 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
                 ...state,
                 fen: api.getFen(),
                 turnColor: turnColor,
+                lastMove: api.state.lastMove,
             }
         });
 
@@ -63,6 +64,7 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
     const config = {
         fen: state.fen,
         turnColor: state.turnColor,
+        lastMove: state.lastMove,
 
         orientation: orientation,
 
