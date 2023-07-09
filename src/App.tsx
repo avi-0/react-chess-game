@@ -2,13 +2,25 @@ import { useEffect, useState } from 'react'
 import './App.css'
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { flipColor, startingPosition } from './chesslogic';
+import { flipColor, getMoves, makeSimpleFen, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
+import { Color } from 'chessground/types';
+import { Chess } from 'chess.js';
 
 function App() {
     const [state, setState, { back: undo, forward: redo }] = useStateWithHistory(startingPosition, { capacity: 100 });
-    const [orientation, setOrientation] = useState("white");
+    const [orientation, setOrientation] = useState<Color>("white");
+
+    // make a new Chess.js object to get legal moves for current position
+    let chess: Chess | undefined = new Chess();
+    try {
+        chess.load(makeSimpleFen(state));
+    } catch {
+        // chess.js errors on illegal positions, fuck it then
+        chess = undefined;
+    }
+    const { dests: moves, captures } = getMoves(chess);
 
     function reset() {
         setState(startingPosition);
@@ -33,7 +45,11 @@ function App() {
 
     return (
         <div className='App'>
-            <Chessboard state={state} setState={setState} orientation={orientation} onMoved={onMoved} />
+            <Chessboard
+                state={state} setState={setState}
+                orientation={orientation}
+                moves={moves}
+                onMoved={onMoved} />
 
             <div className='App-sidebar'>
                 <button onClick={reset}>Reset</button>

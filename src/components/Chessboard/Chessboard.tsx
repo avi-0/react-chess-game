@@ -40,16 +40,6 @@ export default function Chessboard({
         captureSound.volume = 0.4;
     }, [moveSound, captureSound]);
 
-    // make a new Chess.js object to get legal moves for current position
-    let chess: Chess | undefined = new Chess();
-    try {
-        chess.load(makeSimpleFen(state));
-    } catch {
-        // chess.js errors on illegal positions, fuck it then
-        chess = undefined;
-    }
-    const { dests, captures } = getMoves(chess);
-
     function onMoved(orig: Key, dest: Key, meta: MoveMetadata) {
         // update state to reflect change
 
@@ -99,7 +89,7 @@ export default function Chessboard({
                 movable: {
                     free: false,
                     showDests: true,
-                    dests: dests,
+                    dests: moves,
                     events: {
                         after: onMoved,
                     },
