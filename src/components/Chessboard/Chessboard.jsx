@@ -14,8 +14,13 @@ import { flipColor, getMoves, makeSimpleFen } from '../../chesslogic';
 export default function Chessboard({ state, setState = () => {}, orientation, onMoved: onMovedProp = () => {}}) {
     const ref = useRef(null);
     const [api, setApi] = useState(null);
+
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
     const [captureSound, setCaptureSound] = useState(new Audio("/sounds/capture.mp3"));
+    useEffect(() => {
+        moveSound.volume = 0.4;
+        captureSound.volume = 0.4;
+    }, [moveSound, captureSound]);
 
     // make a new Chess object to get legal moves for current position
     let chess = new Chess();
@@ -28,10 +33,9 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
     const { dests, captures } = getMoves(chess);
 
     function onMoved(orig, dest, meta) {
-        // update state to reflect change!
+        // update state to reflect change
 
-        // pass turn to other player
-        // (even if last move was made by the wrong player)
+        // in case of illegal moves, pass turn to other player
         const turnColor = flipColor(api.state.pieces.get(dest).color)
 
         setState(state => {
