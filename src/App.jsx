@@ -7,14 +7,8 @@ import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
 
 function App() {
-    const [state, setState, {back: undo, forward: redo}] = useStateWithHistory(startingPosition, {capacity: 100});
+    const [state, setState, { back: undo, forward: redo }] = useStateWithHistory(startingPosition, { capacity: 100 });
     const [orientation, setOrientation] = useState("white");
-
-    const [autoflip, setAutoflip] = useState(false);
-    const { clear: autoflipClear, reset: autoflipReset } = useTimeout(() => flip(), 600);
-    useEffect(() => {
-        autoflipClear();
-    }, []);
 
     function reset() {
         setState(startingPosition);
@@ -24,6 +18,13 @@ function App() {
         setOrientation(orientation => flipColor(orientation));
     }
 
+    // autoflip (flip after every move, with delay)
+    const [autoflip, setAutoflip] = useState(false);
+    const { clear: autoflipClear, reset: autoflipReset } = useTimeout(() => flip(), 600);
+    useEffect(() => {
+        autoflipClear();
+    }, []);
+
     function onMoved() {
         if (autoflip) {
             autoflipReset();
@@ -32,18 +33,18 @@ function App() {
 
     return (
         <div className='App'>
-            <Chessboard state={state} setState={setState} orientation={orientation} onMoved={onMoved}/>
+            <Chessboard state={state} setState={setState} orientation={orientation} onMoved={onMoved} />
 
             <div className='App-sidebar'>
                 <button onClick={reset}>Reset</button>
                 <button onClick={flip}>Flip</button>
 
                 <label>
-                    <input type="checkbox" checked={autoflip} onChange={e => setAutoflip(e.target.checked)}/>
+                    <input type="checkbox" checked={autoflip} onChange={e => setAutoflip(e.target.checked)} />
                     Autoflip
                 </label>
 
-                <div className="flexspace"/>
+                <div className="flexspace" />
 
                 <button onClick={undo}>Undo</button>
                 <button onClick={redo}>Redo</button>

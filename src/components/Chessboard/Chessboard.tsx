@@ -10,11 +10,16 @@ import { Chess } from 'chess.js';
 import { ChessState, flipColor, getMoves, makeSimpleFen } from '../../chesslogic';
 import { Color, Key, MoveMetadata } from 'chessground/types';
 import { Api } from 'chessground/api';
+import { Config } from 'chessground/config';
 
 export type ChessboardProps = {
     state: ChessState,
     setState: (state: ChessState) => void,
+
     orientation: Color,
+
+    moves: Map<Key, Key[]>,
+
     onMoved: () => void,
 }
 
@@ -22,6 +27,7 @@ export default function Chessboard({
     state,
     setState = () => { },
     orientation,
+    moves,
     onMoved: onMovedProp = () => { }
 }: ChessboardProps) {
     const ref = useRef(null);
@@ -60,12 +66,7 @@ export default function Chessboard({
             });
         }
 
-        // also play sounds
-        if (captures.has(orig + dest)) {
-            captureSound.play()
-        } else {
-            moveSound.play();
-        }
+        moveSound.play();
 
         onMovedProp();
     }
@@ -81,7 +82,7 @@ export default function Chessboard({
     // update inner state
     useEffect(() => {
         if (api) {
-            const config = {
+            const config: Config = {
                 // actual game position
                 fen: state.fen,
                 turnColor: state.turnColor,
