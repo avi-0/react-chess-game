@@ -33,13 +33,6 @@ export default function Chessboard({
     const ref = useRef(null);
     const [api, setApi] = useState<Api | null>(null);
 
-    const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
-    const [captureSound, setCaptureSound] = useState(new Audio("/sounds/capture.mp3"));
-    useEffect(() => {
-        moveSound.volume = 0.4;
-        captureSound.volume = 0.4;
-    }, [moveSound, captureSound]);
-
     function onMoved(orig: Key, dest: Key, meta: MoveMetadata) {
         // update state to reflect change
 
@@ -55,8 +48,6 @@ export default function Chessboard({
                 lastMove: api.state.lastMove,
             });
         }
-
-        moveSound.play();
 
         onMovedProp();
     }

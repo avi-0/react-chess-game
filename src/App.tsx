@@ -12,6 +12,13 @@ function App() {
     const [state, setState, { back: undo, forward: redo }] = useStateWithHistory(startingPosition, { capacity: 100 });
     const [orientation, setOrientation] = useState<Color>("white");
 
+    const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
+    const [captureSound, setCaptureSound] = useState(new Audio("/sounds/capture.mp3"));
+    useEffect(() => {
+        moveSound.volume = 0.4;
+        captureSound.volume = 0.4;
+    }, [moveSound, captureSound]);
+
     // make a new Chess.js object to get legal moves for current position
     let chess: Chess | undefined = new Chess();
     try {
@@ -20,7 +27,15 @@ function App() {
         // chess.js errors on illegal positions, fuck it then
         chess = undefined;
     }
-    const { dests: moves, captures } = getMoves(chess);
+    const { moves, captures } = getMoves(chess);
+
+    function onMoved() {
+        moveSound.play();
+
+        if (autoflip) {
+            autoflipReset();
+        }
+    }
 
     function reset() {
         setState(startingPosition);
@@ -36,12 +51,6 @@ function App() {
     useEffect(() => {
         autoflipClear();
     }, []);
-
-    function onMoved() {
-        if (autoflip) {
-            autoflipReset();
-        }
-    }
 
     return (
         <div className='App'>

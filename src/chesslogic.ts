@@ -17,7 +17,7 @@ export function flipColor(color: Color) {
 }
 
 export function getMoves(chess?: Chess) {
-    const dests = new Map();
+    const moves = new Map();
     const captures = new Set();
 
     if (chess) {
@@ -25,7 +25,7 @@ export function getMoves(chess?: Chess) {
             const ms = chess.moves({ square: s, verbose: true });
 
             if (ms.length) {
-                dests.set(s, ms.map(m => m.to));
+                moves.set(s, ms.map(m => m.to));
 
                 ms.forEach(m => {
                     if (m.flags.includes('c')) {
@@ -36,7 +36,7 @@ export function getMoves(chess?: Chess) {
         });
     }
 
-    return { dests, captures };
+    return { moves, captures };
 }
 
 export function makeSimpleFen(state: ChessState) {
