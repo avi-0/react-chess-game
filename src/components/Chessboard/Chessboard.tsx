@@ -7,13 +7,25 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "./Chessboard.css";
 import { Chess } from 'chess.js';
-import { flipColor, getMoves, makeSimpleFen } from '../../chesslogic';
+import { ChessState, flipColor, getMoves, makeSimpleFen } from '../../chesslogic';
+import { Color, Key, MoveMetadata } from 'chessground/types';
+import { Api } from 'chessground/api';
 
+export type ChessboardProps = {
+    state: ChessState,
+    setState: (state: ChessState) => void,
+    orientation: Color,
+    onMoved: () => void,
+}
 
-
-export default function Chessboard({ state, setState = () => {}, orientation, onMoved: onMovedProp = () => {}}) {
+export default function Chessboard({
+    state,
+    setState = () => { },
+    orientation,
+    onMoved: onMovedProp = () => { }
+}: ChessboardProps) {
     const ref = useRef(null);
-    const [api, setApi] = useState(null);
+    const [api, setApi] = useState<Api | null>(null);
 
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
     const [captureSound, setCaptureSound] = useState(new Audio("/sounds/capture.mp3"));
@@ -22,31 +34,31 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
         captureSound.volume = 0.4;
     }, [moveSound, captureSound]);
 
-    // make a new Chess object to get legal moves for current position
-    let chess = new Chess();
+    // make a new Chess.js object to get legal moves for current position
+    let chess: Chess | undefined = new Chess();
     try {
         chess.load(makeSimpleFen(state));
     } catch {
         // chess.js errors on illegal positions, fuck it then
-        chess = null;
+        chess = undefined;
     }
     const { dests, captures } = getMoves(chess);
 
-    function onMoved(orig, dest, meta) {
+    function onMoved(orig: Key, dest: Key, meta: MoveMetadata) {
         // update state to reflect change
 
-        // in case of illegal moves, pass turn to other player
-        const turnColor = flipColor(api.state.pieces.get(dest).color)
+        if (api) {
+            // pass turn to other player, in case of nonstandard move order
+            const turnColor = flipColor(api.state.pieces.get(dest)?.color || "white")
 
-        // pass state up
-        setState(state => {
-            return {
+            // pass state up
+            setState({
                 ...state,
                 fen: api.getFen(),
                 turnColor: turnColor,
                 lastMove: api.state.lastMove,
-            }
-        });
+            });
+        }
 
         // also play sounds
         if (captures.has(orig + dest)) {
@@ -74,10 +86,10 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
                 fen: state.fen,
                 turnColor: state.turnColor,
                 lastMove: state.lastMove,
-        
+
                 // visual options and callbacks
                 orientation: orientation,
-        
+
                 animation: { enabled: true, duration: 200 },
                 coordinates: false,
                 draggable: {
@@ -92,7 +104,7 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
                     },
                 }
             }
-    
+
             api.set(config);
         }
     }, [api, state, orientation]);

@@ -1,9 +1,10 @@
 import { Chess, SQUARES } from "chess.js";
-import * as cg from "chessground/types";
+import { Color, Key } from "chessground/types";
 
 export type ChessState = {
     fen: string,
-    turnColor: cg.Color,
+    turnColor: Color,
+    lastMove?: Key[],
 }
 
 export const startingPosition: ChessState = {
@@ -11,11 +12,11 @@ export const startingPosition: ChessState = {
     turnColor: "white",
 }
 
-export function flipColor(color: cg.Color) {
+export function flipColor(color: Color) {
     return color == 'white' ? 'black' : 'white';
 }
 
-export function getMoves(chess: Chess) {
+export function getMoves(chess?: Chess) {
     const dests = new Map();
     const captures = new Set();
 
