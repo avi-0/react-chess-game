@@ -20,7 +20,7 @@ export type ChessboardProps = {
 
     moves: Map<Key, Key[]>,
 
-    onMoved: () => void,
+    onMoved: (from: Key, to: Key) => void,
 }
 
 export default function Chessboard({
@@ -33,12 +33,12 @@ export default function Chessboard({
     const ref = useRef(null);
     const [api, setApi] = useState<Api | null>(null);
 
-    function onMoved(orig: Key, dest: Key, meta: MoveMetadata) {
+    function onMoved(from: Key, to: Key, meta: MoveMetadata) {
         // update state to reflect change
 
         if (api) {
             // pass turn to other player, in case of nonstandard move order
-            const turnColor = flipColor(api.state.pieces.get(dest)?.color || "white")
+            const turnColor = flipColor(api.state.pieces.get(to)?.color || "white")
 
             // pass state up
             setState({
@@ -49,7 +49,7 @@ export default function Chessboard({
             });
         }
 
-        onMovedProp();
+        onMovedProp(from, to);
     }
 
     // first time setup

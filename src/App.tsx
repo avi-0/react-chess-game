@@ -5,7 +5,7 @@ import Chessboard from './components/Chessboard/Chessboard';
 import { flipColor, getMoves, makeSimpleFen, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
-import { Color } from 'chessground/types';
+import { Color, Key } from 'chessground/types';
 import { Chess } from 'chess.js';
 
 function App() {
@@ -29,8 +29,12 @@ function App() {
     }
     const { moves, captures } = getMoves(chess);
 
-    function onMoved() {
-        moveSound.play();
+    function onMoved(from: Key, to: Key) {
+        if (captures.has(from + to)) {
+            captureSound.play();
+        } else {
+            moveSound.play();
+        }
 
         if (autoflip) {
             autoflipReset();
