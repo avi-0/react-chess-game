@@ -107,7 +107,7 @@ export default function Chessboard({
 
             api.set(config);
         }
-    }, [api, state, orientation]);
+    }, [api, state, orientation, onMoved]);
 
     return (
         <div className="chessboard-row-wrapper">
