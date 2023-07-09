@@ -11,7 +11,7 @@ function App() {
     const [orientation, setOrientation] = useState("white");
 
     const [autoflip, setAutoflip] = useState(false);
-    const { clear: autoflipClear, reset: autoflipReset } = useTimeout(() => flip(), 400);
+    const { clear: autoflipClear, reset: autoflipReset } = useTimeout(() => flip(), 600);
     useEffect(() => {
         autoflipClear();
     }, []);

@@ -90,7 +90,7 @@ export default function Chessboard({
                 // visual options and callbacks
                 orientation: orientation,
 
-                animation: { enabled: true, duration: 200 },
+                animation: { enabled: true, duration: 300 },
                 coordinates: false,
                 draggable: {
                     enabled: true,
