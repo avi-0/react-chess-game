@@ -38,6 +38,7 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
         // in case of illegal moves, pass turn to other player
         const turnColor = flipColor(api.state.pieces.get(dest).color)
 
+        // pass state up
         setState(state => {
             return {
                 ...state,
@@ -57,38 +58,44 @@ export default function Chessboard({ state, setState = () => {}, orientation, on
         onMovedProp();
     }
 
-    const config = {
-        fen: state.fen,
-        turnColor: state.turnColor,
-        lastMove: state.lastMove,
-
-        orientation: orientation,
-
-        animation: { enabled: true, duration: 200 },
-        coordinates: false,
-        draggable: {
-            enabled: true,
-        },
-        movable: {
-            free: false,
-            showDests: true,
-            dests: dests,
-            events: {
-                after: onMoved,
-            },
-        }
-    }
-
+    // first time setup
     useEffect(() => {
-        if (ref && ref.current && !api) {
-            const chessgroundApi = ChessgroundApi(ref.current, config);
+        if (ref.current && !api) {
+            const chessgroundApi = ChessgroundApi(ref.current);
             setApi(chessgroundApi);
         }
     }, [ref]);
 
+    // update inner state
     useEffect(() => {
-        api?.set(config);
-    }, [api, config]);
+        if (api) {
+            const config = {
+                // actual game position
+                fen: state.fen,
+                turnColor: state.turnColor,
+                lastMove: state.lastMove,
+        
+                // visual options and callbacks
+                orientation: orientation,
+        
+                animation: { enabled: true, duration: 200 },
+                coordinates: false,
+                draggable: {
+                    enabled: true,
+                },
+                movable: {
+                    free: false,
+                    showDests: true,
+                    dests: dests,
+                    events: {
+                        after: onMoved,
+                    },
+                }
+            }
+    
+            api.set(config);
+        }
+    }, [api, state, orientation]);
 
     return (
         <div className="chessboard-row-wrapper">

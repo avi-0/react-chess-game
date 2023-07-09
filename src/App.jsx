@@ -2,14 +2,9 @@ import { useEffect, useState } from 'react'
 import './App.css'
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { flipColor } from './chesslogic';
+import { flipColor, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
-
-const startingPosition = {
-    fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
-    turnColor: "white",
-}
 
 function App() {
     const [state, setState, {back: undo, forward: redo}] = useStateWithHistory(startingPosition, {capacity: 100});
@@ -49,7 +44,7 @@ function App() {
                 </label>
 
                 <div className="flexspace"/>
-                
+
                 <button onClick={undo}>Undo</button>
                 <button onClick={redo}>Redo</button>
             </div>

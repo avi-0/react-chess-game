@@ -1,10 +1,21 @@
-import { SQUARES } from "chess.js";
+import { Chess, SQUARES } from "chess.js";
+import * as cg from "chessground/types";
 
-export function flipColor(color) {
+export type ChessState = {
+    fen: string,
+    turnColor: cg.Color,
+}
+
+export const startingPosition: ChessState = {
+    fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+    turnColor: "white",
+}
+
+export function flipColor(color: cg.Color) {
     return color == 'white' ? 'black' : 'white';
 }
 
-export function getMoves(chess) {
+export function getMoves(chess: Chess) {
     const dests = new Map();
     const captures = new Set();
 
@@ -27,6 +38,6 @@ export function getMoves(chess) {
     return { dests, captures };
 }
 
-export function makeSimpleFen(state) {
+export function makeSimpleFen(state: ChessState) {
     return `${state.fen} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
 }
