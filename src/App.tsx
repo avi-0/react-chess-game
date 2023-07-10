@@ -22,6 +22,7 @@ function App() {
     // make a new Chess.js object to get legal moves for current position
     let chess: Chess | undefined = new Chess();
     try {
+        // simplified for now - assumes full castling rights and no en passants, they're not stored yet
         chess.load(makeSimpleFen(state));
     } catch {
         // chess.js errors on illegal positions, fuck it then
@@ -56,12 +57,15 @@ function App() {
         autoflipClear();
     }, []);
 
+    const [cheat, setCheat] = useState(false);
+
     return (
         <div className='App'>
             <Chessboard
                 state={state} setState={setState}
                 orientation={orientation}
                 moves={moves}
+                cheat={cheat}
                 onMoved={onMoved} />
 
             <div className='App-sidebar'>
@@ -71,6 +75,10 @@ function App() {
                 <label>
                     <input type="checkbox" checked={autoflip} onChange={e => setAutoflip(e.target.checked)} />
                     Autoflip
+                </label>
+                <label>
+                    <input type="checkbox" checked={cheat} onChange={e => setCheat(e.target.checked)} />
+                    Cheat
                 </label>
 
                 <div className="flexspace" />

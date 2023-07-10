@@ -17,6 +17,7 @@ export type ChessboardProps = {
     setState: (state: ChessState) => void,
 
     orientation: Color,
+    cheat: boolean,
 
     moves: Map<Key, Key[]>,
 
@@ -27,6 +28,7 @@ export default function Chessboard({
     state,
     setState = () => { },
     orientation,
+    cheat,
     moves,
     onMoved: onMovedProp = () => { }
 }: ChessboardProps) {
@@ -78,7 +80,7 @@ export default function Chessboard({
                     enabled: true,
                 },
                 movable: {
-                    free: false,
+                    free: cheat,
                     showDests: true,
                     dests: moves,
                     events: {
@@ -89,7 +91,7 @@ export default function Chessboard({
 
             api.set(config);
         }
-    }, [api, state, orientation, onMoved]);
+    }, [api, state, orientation, onMoved, cheat]);
 
     return (
         <div className="chessboard-row-wrapper">
