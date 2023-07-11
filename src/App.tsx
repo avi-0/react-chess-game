@@ -7,6 +7,7 @@ import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
 import { Color, Key } from 'chessground/types';
 import { Chess } from 'chess.js';
+import { ToggleButton } from './components/ToggleButton/ToggleButton';
 
 function App() {
     const [state, setState, { back: undo, forward: redo }] = useStateWithHistory(startingPosition, { capacity: 100 });
@@ -18,6 +19,15 @@ function App() {
         moveSound.volume = 0.4;
         captureSound.volume = 0.4;
     }, [moveSound, captureSound]);
+
+    const [moveType, setMoveType] = useState("normal");
+    function selectMoveType(type: string) {
+        if (type != moveType) {
+            setMoveType(type);
+        } else {
+            setMoveType("normal");
+        }
+    }
 
     const { moves, captures } = getMoves(state);
 
@@ -71,6 +81,10 @@ function App() {
                     <input type="checkbox" checked={cheat} onChange={e => setCheat(e.target.checked)} />
                     Cheat
                 </label>
+
+                <p>Abilities:</p>
+                <ToggleButton active={moveType == "telepathy"} onClick={() => selectMoveType("telepathy")}>Telepathy</ToggleButton>
+                <ToggleButton active={moveType == "bombthrow"} onClick={() => selectMoveType("bombthrow")}>Bomb Throw</ToggleButton>
 
                 <div className="flexspace" />
 

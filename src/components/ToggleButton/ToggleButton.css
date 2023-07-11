@@ -1,0 +1,10 @@
+button.ToggleButton-active {
+    background-color: hsl(200, 100%, 70%);
+    border-color: hsl(200, 70%, 50%);
+    /* font-weight: bold; */
+    /* color: white; */
+}
+
+button.ToggleButton-active:hover {
+    background-color: hsl(200, 85%, 60%);
+}
