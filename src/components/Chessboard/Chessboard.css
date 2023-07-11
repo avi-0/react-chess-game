@@ -48,4 +48,31 @@ cg-board {
 
 .cg-wrap piece.king.black {
     background-image: url('/images/kb.svg');
+
+}
+
+.cg-wrap coords.ranks coord {
+    transform: none;
+  }
+  
+
+.cg-wrap coords {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.cg-wrap coords.ranks {
+    left: 4px;
+    top: 4px;
+}
+
+.cg-wrap coords.files {
+    bottom: 4px;
+    right: 4px;
+    left: unset;
+    text-align: right;
+}
+
+.cg-wrap coords.files {
+    text-transform: lowercase;
 }

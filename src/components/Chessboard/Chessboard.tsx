@@ -73,7 +73,6 @@ export default function Chessboard({
                 orientation: orientation,
 
                 animation: { enabled: true, duration: 300 },
-                coordinates: false,
                 draggable: {
                     enabled: true,
                 },
