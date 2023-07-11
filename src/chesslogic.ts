@@ -16,7 +16,10 @@ export function flipColor(color: Color) {
     return color == 'white' ? 'black' : 'white';
 }
 
-export function getMoves(chess?: Chess) {
+export function getMoves(state: ChessState) {
+    // make a new Chess.js object to get legal moves for current position
+    const chess: Chess | null = getChessJS(state);
+
     const moves = new Map();
     const captures = new Set();
 
@@ -37,6 +40,19 @@ export function getMoves(chess?: Chess) {
     }
 
     return { moves, captures };
+}
+
+function getChessJS(state: ChessState): Chess | null {
+    let chess: Chess | null = new Chess();
+    try {
+        // simplified for now - assumes full castling rights and no en passants, they're not stored yet
+        chess.load(makeSimpleFen(state));
+    } catch {
+        // chess.js errors on illegal positions, fuck it then
+        chess = null;
+    }
+
+    return chess;
 }
 
 export function makeSimpleFen(state: ChessState) {

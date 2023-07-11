@@ -19,16 +19,7 @@ function App() {
         captureSound.volume = 0.4;
     }, [moveSound, captureSound]);
 
-    // make a new Chess.js object to get legal moves for current position
-    let chess: Chess | undefined = new Chess();
-    try {
-        // simplified for now - assumes full castling rights and no en passants, they're not stored yet
-        chess.load(makeSimpleFen(state));
-    } catch {
-        // chess.js errors on illegal positions, fuck it then
-        chess = undefined;
-    }
-    const { moves, captures } = getMoves(chess);
+    const { moves, captures } = getMoves(state);
 
     function onMoved(from: Key, to: Key) {
         if (captures.has(from + to)) {
