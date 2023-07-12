@@ -30,7 +30,6 @@ function App() {
     }
 
     const { moves, captures } = getMoves(state);
-
     function onMoved(from: Key, to: Key) {
         if (captures.has(from + to)) {
             captureSound.play();
@@ -38,9 +37,18 @@ function App() {
             moveSound.play();
         }
 
+        setMoveType("normal");
+
         if (autoflip) {
             autoflipReset();
         }
+    }
+
+    const { moves: telepathyMoves } = getMoves({...state, turnColor: flipColor(state.turnColor)});
+
+    let chessboardMoves = moves;
+    if (moveType == "telepathy") {
+        chessboardMoves = telepathyMoves;
     }
 
     function reset() {
@@ -63,9 +71,9 @@ function App() {
     return (
         <div className='App'>
             <Chessboard
-                state={state} setState={setState}
+                state={state} onChange={setState}
                 orientation={orientation}
-                moves={moves}
+                moves={chessboardMoves}
                 cheat={cheat}
                 onMoved={onMoved} />
 

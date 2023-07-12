@@ -12,7 +12,7 @@ import { Config } from 'chessground/config';
 
 export type ChessboardProps = {
     state: ChessState,
-    setState: (state: ChessState) => void,
+    onChange: (state: ChessState) => void,
 
     orientation: Color,
     cheat: boolean,
@@ -24,7 +24,7 @@ export type ChessboardProps = {
 
 export default function Chessboard({
     state,
-    setState = () => { },
+    onChange = () => { },
     orientation,
     cheat,
     moves,
@@ -37,11 +37,11 @@ export default function Chessboard({
         // update state to reflect change
 
         if (api) {
-            // pass turn to other player, in case of nonstandard move order
+            // pass turn to other player, in case of nonstandard move order when cheating
             const turnColor = flipColor(api.state.pieces.get(to)?.color || "white")
 
             // pass state up
-            setState({
+            onChange({
                 ...state,
                 fen: api.getFen(),
                 turnColor: turnColor,
