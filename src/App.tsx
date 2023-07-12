@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { flipColor, getMoves, makeSimpleFen, startingPosition } from './chesslogic';
+import { ChessState, flipColor, getMoves, makeSimpleFen, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
 import { Color, Key } from 'chessground/types';
@@ -51,6 +51,14 @@ function App() {
         chessboardMoves = telepathyMoves;
     }
 
+    function onChange(newState: ChessState) {
+        if (moveType == "normal") {
+            setState(newState);
+        } else if (moveType == "telepathy") {
+            setState({...newState, turnColor: flipColor(state.turnColor)});
+        }
+    }
+
     function reset() {
         setState(startingPosition);
     }
@@ -71,7 +79,7 @@ function App() {
     return (
         <div className='App'>
             <Chessboard
-                state={state} onChange={setState}
+                state={state} onChange={onChange}
                 orientation={orientation}
                 moves={chessboardMoves}
                 cheat={cheat}
