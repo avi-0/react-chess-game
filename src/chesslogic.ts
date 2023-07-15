@@ -79,11 +79,22 @@ function squareOffsets(square: Square, offsets: [number, number][]): Square[] {
 
 function squareSightline(pieces: Pieces, square: Square, offset: [number, number]): Square[] {
     const [x, y] = XY(square);
+    const color = pieces.get(square)?.color;
     const sightline: Square[] = [];
 
     let currentSquare: Square | undefined = square;
     while (currentSquare != undefined) {
+        // stop before hitting ally
+        if (currentSquare != square && pieces.get(currentSquare)?.color == color) {
+            break;
+        }
+
         sightline.push(currentSquare);
+
+        // stop after hitting any piece
+        if (currentSquare != square && pieces.get(currentSquare)) {
+            break;
+        }
 
         currentSquare = squareOffset(currentSquare, offset);
     }
