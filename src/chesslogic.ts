@@ -84,11 +84,6 @@ function squareSightline(pieces: Pieces, square: Square, offset: [number, number
 
     let currentSquare: Square | undefined = square;
     while (currentSquare != undefined) {
-        // stop before hitting ally
-        if (currentSquare != square && pieces.get(currentSquare)?.color == color) {
-            break;
-        }
-
         sightline.push(currentSquare);
 
         // stop after hitting any piece
@@ -127,6 +122,10 @@ export function getMoves(state: ChessState): Moves {
             } else if (piece.role == "queen") {
                 pieceMoves = squareSightlines(state.pieces, square, queenOffsets);
             }
+
+            pieceMoves = pieceMoves.filter(targetSquare => {
+                return state.pieces.get(targetSquare)?.color != piece.color;
+            })
 
             moves.set(square, pieceMoves);
         }
