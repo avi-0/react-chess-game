@@ -10,6 +10,8 @@ export type ChessState = {
     lastMove?: Key[],
     justCaptured?: boolean,
 }
+const knightOffsets: [number, number][] = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
+const rookOffsets: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
 export function piecesFromFen(fen: string): Pieces  {
     return read(fen);
@@ -43,7 +45,6 @@ for (let x = 0; x < 8; x++) {
     }
 }
 
-
 function X(square: Square): number {
     return xOfSquare.get(square)!;
 }
@@ -65,10 +66,57 @@ function squareAt(x: number, y: number): Square | undefined {
     }
 }
 
-function squareOffsets(square: Square, offsets: [number, number][]): Square[] {
+function squareOffset(square: Square, [offsetX, offsetY]: [number, number]): Square | undefined {
     const [x, y] = XY(square);
+    return squareAt(x + offsetX, y + offsetY);
+}
 
-    return offsets.flatMap(([offsetX, offsetY]) => squareAt(x + offsetX, y + offsetY)).filter(square => square != undefined) as Square[];
+function squareOffsets(square: Square, offsets: [number, number][]): Square[] {
+    return offsets.flatMap(offset => squareOffset(square, offset)).filter(square => square != undefined) as Square[];
+}
+
+function squareSightline(pieces: Pieces, square: Square, offset: [number, number]): Square[] {
+    const [x, y] = XY(square);
+    const sightline: Square[] = [];
+
+    let currentSquare: Square | undefined = square;
+    while (currentSquare != undefined) {
+        sightline.push(currentSquare);
+
+        currentSquare = squareOffset(currentSquare, offset);
+    }
+
+    return sightline;
+}
+
+function squareSightlines(pieces: Pieces, square: Square, offsets: [number, number][]): Square[] {
+    return offsets.flatMap(offset => squareSightline(pieces, square, offset));
+}
+
+export function getMoves(state: ChessState): Moves {
+    const moves: Moves = new Map();
+    const captures = new Set();
+
+    SQUARES.forEach(square => {
+        const piece = state.pieces.get(square);
+
+        if (piece) {
+            let pieceMoves = SQUARES;
+
+            if (piece.role == "knight") {
+                pieceMoves = squareOffsets(square, knightOffsets);
+            } else if (piece.role == "rook") {
+                
+                pieceMoves = squareSightlines(state.pieces, square, rookOffsets);
+            }
+
+            moves.set(square, pieceMoves);
+        }
+
+        
+    })
+
+    return moves;
 }
 
 export function getLegalMoves(state: ChessState): Moves  {
@@ -93,29 +141,6 @@ export function getLegalMoves(state: ChessState): Moves  {
             }
         });
     }
-
-    return moves;
-}
-
-export function getMoves(state: ChessState): Moves {
-    const moves: Moves = new Map();
-    const captures = new Set();
-
-    SQUARES.forEach(square => {
-        const piece = state.pieces.get(square);
-
-        if (piece) {
-            if (piece.role == "knight") {
-                const knightOffsets: [number, number][] = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
-                const squares = squareOffsets(square, knightOffsets)
-                moves.set(square, squares);
-            } else {
-                moves.set(square, SQUARES);
-            }
-        }
-
-        
-    })
 
     return moves;
 }
