@@ -27,7 +27,7 @@ export function flipColor(color: Color) {
     return color == 'white' ? 'black' : 'white';
 }
 
-export function getMoves(state: ChessState) {
+export function getLegalMoves(state: ChessState) {
     // make a new Chess.js object to get legal moves for current position
     const chess: Chess | null = getChessJS(state);
 
@@ -51,6 +51,17 @@ export function getMoves(state: ChessState) {
     }
 
     return { moves, captures };
+}
+
+export function getMoves(state: ChessState) {
+    const moves: Map<Key, Key[]> = new Map();
+    const captures = new Set();
+
+    SQUARES.forEach(square => {
+        moves.set(square, SQUARES);
+    })
+
+    return { moves, captures }
 }
 
 function getChessJS(state: ChessState): Chess | null {
