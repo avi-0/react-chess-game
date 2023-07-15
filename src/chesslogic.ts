@@ -1,6 +1,6 @@
-import { Chess, SQUARES } from "chess.js";
+import { Chess, SQUARES, Square } from "chess.js";
 import { read, write } from "chessground/src/fen";
-import { Color, Key, Piece } from "chessground/types";
+import { Color, File, Key, Piece, files, ranks } from "chessground/types";
 
 export type Pieces = Map<Key, Piece>; // same as chessground
 export type Moves = Map<Key, Key[]>;
@@ -19,13 +19,56 @@ export function fenFromPieces(pieces: Pieces): string {
     return write(pieces)
 }
 
+// const standardFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+const standardFen = "rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1";
 export const startingPosition: ChessState = {
-    pieces: piecesFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"),
+    pieces: piecesFromFen(standardFen),
     turnColor: "white",
 }
 
 export function flipColor(color: Color) {
     return color == 'white' ? 'black' : 'white';
+}
+
+const xOfSquare: Map<Key, number> = new Map();
+const yOfSquare: Map<Key, number> = new Map();
+for (let x = 0; x < 8; x++) {
+    for (let y = 0; y < 8; y++) {
+        const file = files[x];
+        const rank = ranks[y];
+        
+        const square: Key = `${file}${rank}`;
+        xOfSquare.set(square, x);
+        yOfSquare.set(square, y);
+    }
+}
+
+
+function X(square: Square): number {
+    return xOfSquare.get(square)!;
+}
+
+function Y(square: Square): number {
+    return yOfSquare.get(square)!;
+}
+
+function XY(square: Square): [number, number] {
+    return [X(square), Y(square)];
+}
+
+function squareAt(x: number, y: number): Square | undefined {
+    if (x in files && y in ranks) {
+        const file = files[x];
+        const rank = ranks[y];
+        
+        return `${file}${rank}`;
+    }
+}
+
+function squareOffsets(square: Square, offsets: [number, number][]): Square[] {
+    const [x, y] = XY(square);
+
+    return offsets.flatMap(([offsetX, offsetY]) => squareAt(x + offsetX, y + offsetY)).filter(square => square != undefined) as Square[];
 }
 
 export function getLegalMoves(state: ChessState): Moves  {
@@ -59,7 +102,19 @@ export function getMoves(state: ChessState): Moves {
     const captures = new Set();
 
     SQUARES.forEach(square => {
-        moves.set(square, SQUARES);
+        const piece = state.pieces.get(square);
+
+        if (piece) {
+            if (piece.role == "knight") {
+                const knightOffsets: [number, number][] = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
+                const squares = squareOffsets(square, knightOffsets)
+                moves.set(square, squares);
+            } else {
+                moves.set(square, SQUARES);
+            }
+        }
+
+        
     })
 
     return moves;
