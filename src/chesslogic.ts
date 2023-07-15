@@ -12,6 +12,8 @@ export type ChessState = {
 }
 const knightOffsets: [number, number][] = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
 const rookOffsets: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const bishopOffsets: [number, number][] = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+const queenOffsets: [number, number][] = rookOffsets.concat(bishopOffsets);
 
 export function piecesFromFen(fen: string): Pieces  {
     return read(fen);
@@ -103,11 +105,16 @@ export function getMoves(state: ChessState): Moves {
         if (piece) {
             let pieceMoves = SQUARES;
 
-            if (piece.role == "knight") {
+            if (piece.role == "king") {
+                pieceMoves = squareOffsets(square, queenOffsets);
+            } else if (piece.role == "knight") {
                 pieceMoves = squareOffsets(square, knightOffsets);
             } else if (piece.role == "rook") {
-                
                 pieceMoves = squareSightlines(state.pieces, square, rookOffsets);
+            } else if (piece.role == "bishop") {
+                pieceMoves = squareSightlines(state.pieces, square, bishopOffsets);
+            } else if (piece.role == "queen") {
+                pieceMoves = squareSightlines(state.pieces, square, queenOffsets);
             }
 
             moves.set(square, pieceMoves);
