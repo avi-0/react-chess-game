@@ -29,14 +29,8 @@ function App() {
         }
     }
 
-    const { moves, captures } = getMoves(state);
+    const moves = getMoves(state);
     function onMoved(from: Key, to: Key) {
-        if (captures.has(from + to)) {
-            captureSound.play();
-        } else {
-            moveSound.play();
-        }
-
         setMoveType("normal");
 
         if (autoflip) {
@@ -44,7 +38,7 @@ function App() {
         }
     }
 
-    const { moves: telepathyMoves } = getMoves({...state, turnColor: flipColor(state.turnColor)});
+    const telepathyMoves = getMoves({...state, turnColor: flipColor(state.turnColor)});
 
     let chessboardMoves = moves;
     if (moveType == "telepathy") {
@@ -56,6 +50,12 @@ function App() {
             setState(newState);
         } else if (moveType == "telepathy") {
             setState({...newState, turnColor: flipColor(state.turnColor)});
+        }
+
+        if (newState.justCaptured) {
+            captureSound.play();
+        } else {
+            moveSound.play();
         }
     }
 

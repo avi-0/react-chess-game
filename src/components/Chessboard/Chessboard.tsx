@@ -40,6 +40,9 @@ export default function Chessboard({
             // pass turn to other player, in case of nonstandard move order when cheating
             const turnColor = flipColor(api.state.pieces.get(to)?.color || "white")
 
+            // there was a capture if a piece moved where there was already a piece
+            const justCaptured = state.pieces.get(to) != undefined;
+
             // pass state up
             onChange({
                 ...state,
@@ -47,6 +50,7 @@ export default function Chessboard({
                 pieces: piecesFromFen(api.getFen()),
                 turnColor: turnColor,
                 lastMove: api.state.lastMove,
+                justCaptured: justCaptured,
             });
         }
 

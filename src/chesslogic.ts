@@ -3,11 +3,12 @@ import { read, write } from "chessground/src/fen";
 import { Color, Key, Piece } from "chessground/types";
 
 export type Pieces = Map<Key, Piece>; // same as chessground
-
+export type Moves = Map<Key, Key[]>;
 export type ChessState = {
     pieces: Pieces,
     turnColor: Color,
     lastMove?: Key[],
+    justCaptured?: boolean,
 }
 
 export function piecesFromFen(fen: string): Pieces  {
@@ -27,11 +28,11 @@ export function flipColor(color: Color) {
     return color == 'white' ? 'black' : 'white';
 }
 
-export function getLegalMoves(state: ChessState) {
+export function getLegalMoves(state: ChessState): Moves  {
     // make a new Chess.js object to get legal moves for current position
     const chess: Chess | null = getChessJS(state);
 
-    const moves = new Map();
+    const moves: Moves = new Map();
     const captures = new Set();
 
     if (chess) {
@@ -50,18 +51,18 @@ export function getLegalMoves(state: ChessState) {
         });
     }
 
-    return { moves, captures };
+    return moves;
 }
 
-export function getMoves(state: ChessState) {
-    const moves: Map<Key, Key[]> = new Map();
+export function getMoves(state: ChessState): Moves {
+    const moves: Moves = new Map();
     const captures = new Set();
 
     SQUARES.forEach(square => {
         moves.set(square, SQUARES);
     })
 
-    return { moves, captures }
+    return moves;
 }
 
 function getChessJS(state: ChessState): Chess | null {
