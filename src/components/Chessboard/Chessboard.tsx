@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import "./chessground.base.css";
 import "./chessground.brown.css";
 import "./Chessboard.css";
-import { ChessState, fenFromPieces, flipColor, getMoves, makeSimpleFen, piecesFromFen } from '../../chesslogic';
-import { Color, Key, MoveMetadata } from 'chessground/types';
+import { ChessState, Move, fenFromPieces, flipColor, getMoves, makeSimpleFen, piecesFromFen } from '../../chesslogic';
+import { Color, Key as Square, MoveMetadata } from 'chessground/types';
 import { Api } from 'chessground/api';
 import { Config } from 'chessground/config';
 
@@ -17,9 +17,9 @@ export type ChessboardProps = {
     orientation: Color,
     cheat: boolean,
 
-    moves: Map<Key, Key[]>,
+    moves: Map<Square, Move[]>,
 
-    onMoved: (from: Key, to: Key) => void,
+    onMoved: (from: Square, to: Square) => void,
 }
 
 export default function Chessboard({
@@ -33,15 +33,15 @@ export default function Chessboard({
     const ref = useRef(null);
     const [api, setApi] = useState<Api | null>(null);
 
-    function onMoved(from: Key, to: Key, meta: MoveMetadata) {
+    function onMoved(from: Square, to: Square, meta: MoveMetadata) {
         // update state to reflect change
 
         if (api) {
+            // find which move this was
+            const movePlayed = moves.get(from)?.find(move => move.to == to)
+
             // pass turn to other player, in case of nonstandard move order when cheating
             const turnColor = flipColor(api.state.pieces.get(to)?.color || "white")
-
-            // there was a capture if a piece moved where there was already a piece
-            const justCaptured = state.pieces.get(to) != undefined;
 
             // pass state up
             onChange({
@@ -50,7 +50,8 @@ export default function Chessboard({
                 pieces: piecesFromFen(api.getFen()),
                 turnColor: turnColor,
                 lastMove: api.state.lastMove,
-                justCaptured: justCaptured,
+                justCaptured: movePlayed?.isCapture,
+                enPassantSquare: movePlayed?.enPassantSquare,
             });
         }
 
@@ -68,6 +69,12 @@ export default function Chessboard({
     // update inner state
     useEffect(() => {
         if (api) {
+            const chessgroundMoves = new Map(
+                Array.from(moves.entries()).map(([from, moves]) => 
+                    [from, moves.map(move => move.to)]
+                )
+            );
+
             const config: Config = {
                 // actual game position
                 fen: fenFromPieces(state.pieces),
@@ -84,7 +91,7 @@ export default function Chessboard({
                 movable: {
                     free: cheat,
                     showDests: true,
-                    dests: moves,
+                    dests: chessgroundMoves,
                     events: {
                         after: onMoved,
                     },

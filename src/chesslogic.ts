@@ -1,21 +1,28 @@
-import { Chess, SQUARES, Square } from "chess.js";
+import { Chess, Square as ChessJsSquare } from "chess.js";
 import { read, write } from "chessground/src/fen";
-import { Color, File, Key, Piece, files, ranks } from "chessground/types";
+import { Color, File, Key as Square, Piece, files, ranks } from "chessground/types";
 
-export type Pieces = Map<Key, Piece>; // same as chessground
-export type Moves = Map<Key, Key[]>;
+export type Pieces = Map<Square, Piece>; // same as chessground
+export type Move = {
+    from: Square,
+    to: Square,
+    isCapture?: boolean,
+    enPassantSquare?: Square,
+}
+export type Moves = Map<Square, Move[]>;
 export type ChessState = {
     pieces: Pieces,
     turnColor: Color,
-    lastMove?: Key[],
+    lastMove?: Square[],
     justCaptured?: boolean,
+    enPassantSquare?: Square,
 }
 const knightOffsets: [number, number][] = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
 const rookOffsets: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const bishopOffsets: [number, number][] = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
 const queenOffsets: [number, number][] = rookOffsets.concat(bishopOffsets);
 
-export function piecesFromFen(fen: string): Pieces  {
+export function piecesFromFen(fen: string): Pieces {
     return read(fen);
 }
 
@@ -33,25 +40,27 @@ export function flipColor(color: Color) {
     return color == 'white' ? 'black' : 'white';
 }
 
-const xOfSquare: Map<Key, number> = new Map();
-const yOfSquare: Map<Key, number> = new Map();
+const SQUARES: Square[] = new Array();
+const X_OF_SQUARE: Map<Square, number> = new Map();
+const Y_OF_SQUARE: Map<Square, number> = new Map();
 for (let x = 0; x < 8; x++) {
     for (let y = 0; y < 8; y++) {
         const file = files[x];
         const rank = ranks[y];
-        
-        const square: Key = `${file}${rank}`;
-        xOfSquare.set(square, x);
-        yOfSquare.set(square, y);
+
+        const square: Square = `${file}${rank}`;
+        SQUARES.push(square);
+        X_OF_SQUARE.set(square, x);
+        Y_OF_SQUARE.set(square, y);
     }
 }
 
 function X(square: Square): number {
-    return xOfSquare.get(square)!;
+    return X_OF_SQUARE.get(square)!;
 }
 
 function Y(square: Square): number {
-    return yOfSquare.get(square)!;
+    return Y_OF_SQUARE.get(square)!;
 }
 
 function XY(square: Square): [number, number] {
@@ -62,7 +71,7 @@ function squareAt(x: number, y: number): Square | undefined {
     if (x in files && y in ranks) {
         const file = files[x];
         const rank = ranks[y];
-        
+
         return `${file}${rank}`;
     }
 }
@@ -105,27 +114,30 @@ export function getMoves(state: ChessState): Moves {
 
     const moves: Moves = new Map();
     const captures = new Set();
-    
+
     SQUARES.forEach(square => {
         const piece = state.pieces.get(square);
 
         if (piece) {
-            let pieceMoves = SQUARES;
+            let pieceMoveSquares = SQUARES;
+
+            // record double pawn pushes separately, tracking en passant squares
+            let doublePawnPushes: { to: Square, enPassantSquare: Square }[] = [];
 
             function notAlly(target: Square) {
                 return pieces.get(target)?.color != piece!.color;
             }
 
             if (piece.role == "king") {
-                pieceMoves = squareOffsets(square, queenOffsets);
+                pieceMoveSquares = squareOffsets(square, queenOffsets);
             } else if (piece.role == "knight") {
-                pieceMoves = squareOffsets(square, knightOffsets);
+                pieceMoveSquares = squareOffsets(square, knightOffsets);
             } else if (piece.role == "rook") {
-                pieceMoves = squareSightlines(pieces, square, rookOffsets);
+                pieceMoveSquares = squareSightlines(pieces, square, rookOffsets);
             } else if (piece.role == "bishop") {
-                pieceMoves = squareSightlines(pieces, square, bishopOffsets);
+                pieceMoveSquares = squareSightlines(pieces, square, bishopOffsets);
             } else if (piece.role == "queen") {
-                pieceMoves = squareSightlines(pieces, square, queenOffsets);
+                pieceMoveSquares = squareSightlines(pieces, square, queenOffsets);
             } else if (piece.role == "pawn") {
                 const [x, y] = XY(square);
 
@@ -137,46 +149,62 @@ export function getMoves(state: ChessState): Moves {
 
                 const pushes = canDoublePush ? [push, doublePush] : [push];
                 const pushMoves = squareOffsets(square, pushes).filter(target => pieces.get(target) == undefined);
-                const captureMoves = squareOffsets(square, captures).filter(target => pieces.get(target)?.color == flipColor(piece.color));
-                pieceMoves = pushMoves.concat(captureMoves);
+                const captureMoves = squareOffsets(square, captures).filter(target => {
+                    console.log(state.enPassantSquare);
+                    return pieces.get(target)?.color == flipColor(piece.color)
+                        || target == state.enPassantSquare;
+                });
+
+                pieceMoveSquares = pushMoves.concat(captureMoves);
+
+                // record double pushes
+                if (canDoublePush) {
+                    doublePawnPushes.push({ to: squareOffset(square, doublePush)!, enPassantSquare: squareOffset(square, push)! });
+                }
             }
 
-            pieceMoves = pieceMoves.filter(target => notAlly(target));
+            pieceMoveSquares = pieceMoveSquares.filter(target => notAlly(target));
+            const pieceMoves = pieceMoveSquares.map(target => ({
+                from: square,
+                to: target,
+                isCapture: pieces.get(target) != undefined,
+                enPassantSquare: doublePawnPushes.find(({ to }) => to == target)?.enPassantSquare,
+            }))
 
             moves.set(square, pieceMoves);
         }
 
-        
+
     })
 
     return moves;
 }
 
-export function getLegalMoves(state: ChessState): Moves  {
-    // make a new Chess.js object to get legal moves for current position
-    const chess: Chess | null = getChessJS(state);
+// export function getLegalMoves(state: ChessState): Moves  {
+//     // make a new Chess.js object to get legal moves for current position
+//     const chess: Chess | null = getChessJS(state);
 
-    const moves: Moves = new Map();
-    const captures = new Set();
+//     const moves: Moves = new Map();
+//     const captures = new Set();
 
-    if (chess) {
-        SQUARES.forEach(s => {
-            const ms = chess.moves({ square: s, verbose: true });
+//     if (chess) {
+//         SQUARES.forEach(s => {
+//             const ms = chess.moves({ square: s as ChessJsSquare, verbose: true });
 
-            if (ms.length) {
-                moves.set(s, ms.map(m => m.to));
+//             if (ms.length) {
+//                 moves.set(s, ms.map(m => m.to));
 
-                ms.forEach(m => {
-                    if (m.flags.includes('c')) {
-                        captures.add(m.from + m.to);
-                    }
-                })
-            }
-        });
-    }
+//                 ms.forEach(m => {
+//                     if (m.flags.includes('c')) {
+//                         captures.add(m.from + m.to);
+//                     }
+//                 })
+//             }
+//         });
+//     }
 
-    return moves;
-}
+//     return moves;
+// }
 
 function getChessJS(state: ChessState): Chess | null {
     let chess: Chess | null = new Chess();
