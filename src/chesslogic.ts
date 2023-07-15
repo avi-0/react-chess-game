@@ -23,8 +23,7 @@ export function fenFromPieces(pieces: Pieces): string {
     return write(pieces)
 }
 
-// const standardFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-const standardFen = "rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1";
+const standardFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 export const startingPosition: ChessState = {
     pieces: piecesFromFen(standardFen),
     turnColor: "white",
@@ -102,30 +101,47 @@ function squareSightlines(pieces: Pieces, square: Square, offsets: [number, numb
 }
 
 export function getMoves(state: ChessState): Moves {
+    const pieces = state.pieces;
+
     const moves: Moves = new Map();
     const captures = new Set();
-
+    
     SQUARES.forEach(square => {
         const piece = state.pieces.get(square);
 
         if (piece) {
             let pieceMoves = SQUARES;
 
+            function notAlly(target: Square) {
+                return pieces.get(target)?.color != piece!.color;
+            }
+
             if (piece.role == "king") {
                 pieceMoves = squareOffsets(square, queenOffsets);
             } else if (piece.role == "knight") {
                 pieceMoves = squareOffsets(square, knightOffsets);
             } else if (piece.role == "rook") {
-                pieceMoves = squareSightlines(state.pieces, square, rookOffsets);
+                pieceMoves = squareSightlines(pieces, square, rookOffsets);
             } else if (piece.role == "bishop") {
-                pieceMoves = squareSightlines(state.pieces, square, bishopOffsets);
+                pieceMoves = squareSightlines(pieces, square, bishopOffsets);
             } else if (piece.role == "queen") {
-                pieceMoves = squareSightlines(state.pieces, square, queenOffsets);
+                pieceMoves = squareSightlines(pieces, square, queenOffsets);
+            } else if (piece.role == "pawn") {
+                const [x, y] = XY(square);
+
+                const push: [number, number] = piece.color == "white" ? [0, 1] : [0, -1];
+                const doublePush: [number, number] = piece.color == "white" ? [0, 2] : [0, -2];
+                const canDoublePush = piece.color == "white" ? y == 1 : y == 6;
+
+                const captures: [number, number][] = piece.color == "white" ? [[-1, 1], [1, 1]] : [[-1, -1], [1, -1]];
+
+                const pushes = canDoublePush ? [push, doublePush] : [push];
+                const pushMoves = squareOffsets(square, pushes).filter(target => pieces.get(target) == undefined);
+                const captureMoves = squareOffsets(square, captures).filter(target => pieces.get(target)?.color == flipColor(piece.color));
+                pieceMoves = pushMoves.concat(captureMoves);
             }
 
-            pieceMoves = pieceMoves.filter(targetSquare => {
-                return state.pieces.get(targetSquare)?.color != piece.color;
-            })
+            pieceMoves = pieceMoves.filter(target => notAlly(target));
 
             moves.set(square, pieceMoves);
         }
