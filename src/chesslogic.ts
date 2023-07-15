@@ -1,14 +1,25 @@
 import { Chess, SQUARES } from "chess.js";
-import { Color, Key } from "chessground/types";
+import { read, write } from "chessground/src/fen";
+import { Color, Key, Piece } from "chessground/types";
+
+export type Pieces = Map<Key, Piece>; // same as chessground
 
 export type ChessState = {
-    fen: string,
+    pieces: Pieces,
     turnColor: Color,
     lastMove?: Key[],
 }
 
+export function piecesFromFen(fen: string): Pieces  {
+    return read(fen);
+}
+
+export function fenFromPieces(pieces: Pieces): string {
+    return write(pieces)
+}
+
 export const startingPosition: ChessState = {
-    fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+    pieces: piecesFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"),
     turnColor: "white",
 }
 
@@ -56,5 +67,5 @@ function getChessJS(state: ChessState): Chess | null {
 }
 
 export function makeSimpleFen(state: ChessState) {
-    return `${state.fen} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
+    return `${fenFromPieces(state.pieces)} ${state.turnColor == 'white' ? 'w' : 'b'}  KQkq - 0 1`
 }

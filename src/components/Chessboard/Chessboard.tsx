@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import "./chessground.base.css";
 import "./chessground.brown.css";
 import "./Chessboard.css";
-import { ChessState, flipColor, getMoves, makeSimpleFen } from '../../chesslogic';
+import { ChessState, fenFromPieces, flipColor, getMoves, makeSimpleFen, piecesFromFen } from '../../chesslogic';
 import { Color, Key, MoveMetadata } from 'chessground/types';
 import { Api } from 'chessground/api';
 import { Config } from 'chessground/config';
@@ -43,7 +43,8 @@ export default function Chessboard({
             // pass state up
             onChange({
                 ...state,
-                fen: api.getFen(),
+
+                pieces: piecesFromFen(api.getFen()),
                 turnColor: turnColor,
                 lastMove: api.state.lastMove,
             });
@@ -65,7 +66,7 @@ export default function Chessboard({
         if (api) {
             const config: Config = {
                 // actual game position
-                fen: state.fen,
+                fen: fenFromPieces(state.pieces),
                 turnColor: state.turnColor,
                 lastMove: state.lastMove,
 
