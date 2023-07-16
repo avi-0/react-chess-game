@@ -40,7 +40,7 @@ export const startingPosition: ChessState = {
     turnColor: "white",
 }
 
-export function flipColor(color: Color) {
+export function flipColor(color: Color): Color {
     return color == 'white' ? 'black' : 'white';
 }
 
@@ -204,6 +204,28 @@ export function getMoves(state: ChessState): Moves {
     const moves = getMovesAnyPlayer(state);
     for (const square of moves.keys()) {
         if (state.pieces.get(square)?.color != state.turnColor) {
+            moves.delete(square);
+        }
+    }
+
+    return moves;
+}
+
+export function getTelepathyMoves(state: ChessState): Moves {
+    const moves = getMovesAnyPlayer(state);
+
+    const targets = [];
+    for (const moveArray of moves.values()) {
+        for (const move of moveArray) {
+            if (state.pieces.get(move.from)?.color == state.turnColor && move.isCapture) {
+                targets.push(move.to);
+            }
+        }
+    }
+
+    // now filter out to only keep the moves we want from other player
+    for (const square of moves.keys()) {
+        if (!targets.includes(square)) {
             moves.delete(square);
         }
     }

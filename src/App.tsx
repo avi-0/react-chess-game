@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { ChessState, Move, flipColor, getMoves, startingPosition } from './chesslogic';
+import { ChessState, Move, flipColor, getMoves, getTelepathyMoves, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
 import { Color } from 'chessground/types';
@@ -29,7 +29,7 @@ function App() {
     }
 
     const moves = getMoves(state);
-    const telepathyMoves = getMoves({...state, turnColor: flipColor(state.turnColor)});
+    const telepathyMoves = getTelepathyMoves(state);
 
     let chessboardMoves = moves;
     if (moveType == "telepathy") {
@@ -51,7 +51,10 @@ function App() {
         }
 
         // pass turn to other player, in case of nonstandard move order when cheating
-        const turnColor = flipColor(state.pieces.get(move.from)?.color || "white");
+        let turnColor = flipColor(state.pieces.get(move.from)?.color || "white");
+        if (moveType == "telepathy") {
+            turnColor = flipColor(turnColor);
+        }
 
         setState({
             ...state,
@@ -72,6 +75,8 @@ function App() {
         if (autoflip) {
             autoflipReset();
         }
+
+        setMoveType("normal");
     }
 
     function reset() {
