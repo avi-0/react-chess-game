@@ -9,7 +9,13 @@
   grid-template-rows: 1fr;
   grid-column-gap: 32px;
   justify-content: center;
-  align-content: center
+  align-content: center;
+
+  /* background-color: hsl(200, 100%, 90%); */
+}
+
+.App.ability-active {
+  background-color: #bbe1fa;
 }
 
 .App-sidebar {

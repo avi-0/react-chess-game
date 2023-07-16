@@ -97,7 +97,7 @@ function App() {
     const [cheat, setCheat] = useState(false);
 
     return (
-        <div className='App'>
+        <div className={`App ${moveType != "normal" && "ability-active"}`}>
             <Chessboard
                 state={state} onMovePlayed={onMovePlayed}
                 orientation={orientation}
