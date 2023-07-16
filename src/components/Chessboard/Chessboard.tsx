@@ -12,23 +12,19 @@ import { Config } from 'chessground/config';
 
 export type ChessboardProps = {
     state: ChessState,
-    onChange: (state: ChessState) => void,
-
     orientation: Color,
     cheat: boolean,
-
     moves: Map<Square, Move[]>,
 
-    onMoved: (from: Square, to: Square) => void,
+    onMovePlayed: (move: Move) => void,
 }
 
 export default function Chessboard({
     state,
-    onChange = () => { },
     orientation,
     cheat,
     moves,
-    onMoved: onMovedProp = () => { }
+    onMovePlayed,
 }: ChessboardProps) {
     const ref = useRef(null);
     const [api, setApi] = useState<Api | null>(null);
@@ -40,22 +36,11 @@ export default function Chessboard({
             // find which move this was
             const movePlayed = moves.get(from)?.find(move => move.to == to)
 
-            // pass turn to other player, in case of nonstandard move order when cheating
-            const turnColor = flipColor(api.state.pieces.get(to)?.color || "white")
-
             // pass state up
-            onChange({
-                ...state,
-
-                pieces: piecesFromFen(api.getFen()),
-                turnColor: turnColor,
-                lastMove: api.state.lastMove,
-                justCaptured: movePlayed?.isCapture,
-                enPassantSquare: movePlayed?.enPassantSquare,
-            });
+            if (onMovePlayed && movePlayed) {
+                onMovePlayed(movePlayed);
+            }
         }
-
-        onMovedProp(from, to);
     }
 
     // first time setup

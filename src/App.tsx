@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { ChessState, flipColor, getMoves, makeSimpleFen, startingPosition } from './chesslogic';
+import { ChessState, Move, flipColor, getMoves, makeSimpleFen, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
 import { Color, Key } from 'chessground/types';
@@ -45,14 +45,25 @@ function App() {
         chessboardMoves = telepathyMoves;
     }
 
-    function onChange(newState: ChessState) {
-        if (moveType == "normal") {
-            setState(newState);
-        } else if (moveType == "telepathy") {
-            setState({...newState, turnColor: flipColor(state.turnColor)});
-        }
+    function onMovePlayed(move: Move) {
+        const pieces = new Map(state.pieces);
+        pieces.delete(move.from);
+        pieces.set(move.to, state.pieces.get(move.from));
 
-        if (newState.justCaptured) {
+        // pass turn to other player, in case of nonstandard move order when cheating
+        const turnColor = flipColor(state.pieces.get(move.from)?.color || "white");
+
+        setState({
+            ...state,
+
+            pieces: pieces,
+            turnColor: turnColor,
+            lastMove: undefined,
+            justCaptured: move.isCapture,
+            enPassantSquare: move.enPassantSquare,
+        });
+
+        if (move.isCapture) {
             captureSound.play();
         } else {
             moveSound.play();
@@ -79,11 +90,10 @@ function App() {
     return (
         <div className='App'>
             <Chessboard
-                state={state} onChange={onChange}
+                state={state} onMovePlayed={onMovePlayed}
                 orientation={orientation}
                 moves={chessboardMoves}
-                cheat={cheat}
-                onMoved={onMoved} />
+                cheat={cheat} />
 
             <div className='App-sidebar'>
                 <button onClick={reset}>Reset</button>

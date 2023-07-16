@@ -150,7 +150,6 @@ export function getMoves(state: ChessState): Moves {
                 const pushes = canDoublePush ? [push, doublePush] : [push];
                 const pushMoves = squareOffsets(square, pushes).filter(target => pieces.get(target) == undefined);
                 const captureMoves = squareOffsets(square, captures).filter(target => {
-                    console.log(state.enPassantSquare);
                     return pieces.get(target)?.color == flipColor(piece.color)
                         || target == state.enPassantSquare;
                 });
