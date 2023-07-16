@@ -37,7 +37,6 @@ function App() {
     }
 
     function onMovePlayed(move: Move) {
-        console.log(state, move);
         // make new Pieces and move piece mover
         const pieces = new Map(state.pieces);
         const pieceMoved = state.pieces.get(move.from);

@@ -39,6 +39,10 @@ export default function Chessboard({
             if (onMovePlayed && movePlayed) {
                 onMovePlayed(movePlayed);
             }
+
+            // undo some of the internal state change until actual new state arrives from prop
+            // to fix animations
+            api.state.pieces = state.pieces;
         }
     }
 
