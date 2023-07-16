@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@uidotdev/usehooks": "^2.0.1",
-    "chess.js": "^1.0.0-beta.6",
     "chessground": "^8.3.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

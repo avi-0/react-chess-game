@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { useEffect, useState } from 'react';
+import './App.css';
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { ChessState, Move, flipColor, getMoves, makeSimpleFen, startingPosition } from './chesslogic';
+import { ChessState, Move, flipColor, getMoves, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
-import { Color, Key } from 'chessground/types';
-import { Chess } from 'chess.js';
+import { Color } from 'chessground/types';
 import { ToggleButton } from './components/ToggleButton/ToggleButton';
 
 function App() {

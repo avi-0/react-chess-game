@@ -1,11 +1,10 @@
 import { Chessground as ChessgroundApi } from 'chessground';
-import { read as readFen } from 'chessground/src/fen'
 import { useEffect, useRef, useState } from 'react';
 
 import "./chessground.base.css";
 import "./chessground.brown.css";
 import "./Chessboard.css";
-import { ChessState, Move, fenFromPieces, flipColor, getMoves, makeSimpleFen, piecesFromFen } from '../../chesslogic';
+import { ChessState, Move, fenFromPieces } from '../../chesslogic';
 import { Color, Key as Square, MoveMetadata } from 'chessground/types';
 import { Api } from 'chessground/api';
 import { Config } from 'chessground/config';
