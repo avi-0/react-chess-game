@@ -3,11 +3,16 @@ import { read, write } from "chessground/src/fen";
 import { Color, File, Key as Square, Piece, files, ranks } from "chessground/types";
 
 export type Pieces = Map<Square, Piece>; // same as chessground
+export type EnPassant = {
+    passedSquare: Square;
+    pawnSquare: Square;
+}
 export type Move = {
     from: Square,
     to: Square,
     isCapture?: boolean,
-    enPassantSquare?: Square,
+    allowsEnPassant?: EnPassant,
+    isEnPassant?: EnPassant,
 }
 export type Moves = Map<Square, Move[]>;
 export type ChessState = {
@@ -15,7 +20,7 @@ export type ChessState = {
     turnColor: Color,
     lastMove?: Square[],
     justCaptured?: boolean,
-    enPassantSquare?: Square,
+    enPassant?: EnPassant,
 }
 const knightOffsets: [number, number][] = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
 const rookOffsets: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -121,8 +126,9 @@ export function getMoves(state: ChessState): Moves {
         if (piece) {
             let pieceMoveSquares = SQUARES;
 
-            // record double pawn pushes separately, tracking en passant squares
-            let doublePawnPushes: { to: Square, enPassantSquare: Square }[] = [];
+            // remember en passants temporarily
+            let enPassantsToAllow: EnPassant[] = [];
+            let enPassantsToPlay: EnPassant[] = [];
 
             function notAlly(target: Square) {
                 return pieces.get(target)?.color != piece!.color;
@@ -151,28 +157,44 @@ export function getMoves(state: ChessState): Moves {
                 const pushMoves = squareOffsets(square, pushes).filter(target => pieces.get(target) == undefined);
                 const captureMoves = squareOffsets(square, captures).filter(target => {
                     return pieces.get(target)?.color == flipColor(piece.color)
-                        || target == state.enPassantSquare;
+                        || target == state.enPassant?.passedSquare;
                 });
 
                 pieceMoveSquares = pushMoves.concat(captureMoves);
 
-                // record double pushes
+                // remember en passants
                 if (canDoublePush) {
-                    doublePawnPushes.push({ to: squareOffset(square, doublePush)!, enPassantSquare: squareOffset(square, push)! });
+                    enPassantsToAllow.push({
+                        pawnSquare: squareOffset(square, doublePush)!,
+                        passedSquare: squareOffset(square, push)!
+                    });
                 }
+                captureMoves.map(target => {
+                    if (target == state.enPassant?.passedSquare) {
+                        enPassantsToPlay.push(state.enPassant);
+                    }
+                })
             }
 
             pieceMoveSquares = pieceMoveSquares.filter(target => notAlly(target));
-            const pieceMoves = pieceMoveSquares.map(target => ({
-                from: square,
-                to: target,
-                isCapture: pieces.get(target) != undefined,
-                enPassantSquare: doublePawnPushes.find(({ to }) => to == target)?.enPassantSquare,
-            }))
+
+
+
+            const pieceMoves = pieceMoveSquares.map(target => {
+                const allowsEnPassant = enPassantsToAllow.find(enPassant => enPassant.pawnSquare == target);
+                const isEnPassant = enPassantsToPlay.find(enPassant => enPassant.passedSquare == target);
+
+                return {
+                    from: square,
+                    to: target,
+                    isCapture: (pieces.get(target) || isEnPassant) != undefined,
+                    allowsEnPassant: allowsEnPassant,
+                    isEnPassant: isEnPassant,
+                }
+            });
 
             moves.set(square, pieceMoves);
         }
-
 
     })
 

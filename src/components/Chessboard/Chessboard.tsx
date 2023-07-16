@@ -54,6 +54,7 @@ export default function Chessboard({
     // update inner state
     useEffect(() => {
         if (api) {
+            // yo dawg we put .map in your .map so you can map inside Map
             const chessgroundMoves = new Map(
                 Array.from(moves.entries()).map(([from, moves]) => 
                     [from, moves.map(move => move.to)]

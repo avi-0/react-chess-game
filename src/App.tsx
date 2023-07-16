@@ -10,7 +10,7 @@ import { Chess } from 'chess.js';
 import { ToggleButton } from './components/ToggleButton/ToggleButton';
 
 function App() {
-    const [state, setState, { back: undo, forward: redo }] = useStateWithHistory(startingPosition, { capacity: 100 });
+    const [state, setState, { back: undo, forward: redo }]: [ChessState, any, any] = useStateWithHistory(startingPosition, { capacity: 100 }) as any;
     const [orientation, setOrientation] = useState<Color>("white");
 
     const [moveSound, setMoveSound] = useState(new Audio("/sounds/move.mp3"));
@@ -30,14 +30,6 @@ function App() {
     }
 
     const moves = getMoves(state);
-    function onMoved(from: Key, to: Key) {
-        setMoveType("normal");
-
-        if (autoflip) {
-            autoflipReset();
-        }
-    }
-
     const telepathyMoves = getMoves({...state, turnColor: flipColor(state.turnColor)});
 
     let chessboardMoves = moves;
@@ -46,9 +38,19 @@ function App() {
     }
 
     function onMovePlayed(move: Move) {
+        console.log(state, move);
+        // make new Pieces and move piece mover
         const pieces = new Map(state.pieces);
-        pieces.delete(move.from);
-        pieces.set(move.to, state.pieces.get(move.from));
+        const pieceMoved = state.pieces.get(move.from);
+        if (pieceMoved) {
+            pieces.delete(move.from);
+            pieces.set(move.to, pieceMoved);
+        }
+
+        // apply enPassant if present
+        if (move.isEnPassant) {
+            pieces.delete(move.isEnPassant.pawnSquare);
+        }
 
         // pass turn to other player, in case of nonstandard move order when cheating
         const turnColor = flipColor(state.pieces.get(move.from)?.color || "white");
@@ -58,15 +60,19 @@ function App() {
 
             pieces: pieces,
             turnColor: turnColor,
-            lastMove: undefined,
+            lastMove: [move.from, move.to],
             justCaptured: move.isCapture,
-            enPassantSquare: move.enPassantSquare,
+            enPassant: move.allowsEnPassant,
         });
 
         if (move.isCapture) {
             captureSound.play();
         } else {
             moveSound.play();
+        }
+
+        if (autoflip) {
+            autoflipReset();
         }
     }
 
