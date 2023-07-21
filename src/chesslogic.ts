@@ -1,19 +1,13 @@
+import { move } from "chessground/drag";
 import { read, write } from "chessground/src/fen";
-import { Color, Key as Square, Piece, files, ranks } from "chessground/types";
+import { Color, Key, Piece, files, ranks } from "chessground/types";
 
+export type Square = Key;
 export type Pieces = Map<Square, Piece>; // same as chessground
 export type EnPassant = {
     passedSquare: Square;
     pawnSquare: Square;
 }
-export type Move = {
-    from: Square,
-    to: Square,
-    isCapture?: boolean,
-    allowsEnPassant?: EnPassant,
-    isEnPassant?: EnPassant,
-}
-export type Moves = Map<Square, Move[]>;
 export type ChessState = {
     pieces: Pieces,
     turnColor: Color,
@@ -21,6 +15,14 @@ export type ChessState = {
     justCaptured?: boolean,
     enPassant?: EnPassant,
 }
+export type Move = {
+    from: Square,
+    to: Square,
+    result?: ChessState,
+    isCapture?: boolean,
+}
+export type Moves = Map<Square, Move[]>;
+
 const knightOffsets: [number, number][] = [[1, 2], [-1, 2], [1, -2], [-1, -2], [2, 1], [-2, 1], [2, -1], [-2, -1]];
 const rookOffsets: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const bishopOffsets: [number, number][] = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
@@ -80,6 +82,16 @@ function squareAt(x: number, y: number): Square | undefined {
     }
 }
 
+export function movePiece(pieces: Pieces, from: Square, to: Square) {
+    const newPieces = new Map(pieces);
+    const pieceMoved = pieces.get(from);
+    if (pieceMoved) {
+        newPieces.delete(from);
+        newPieces.set(to, pieceMoved);
+    }
+    return newPieces;
+}
+
 function squareOffset(square: Square, [offsetX, offsetY]: [number, number]): Square | undefined {
     const [x, y] = XY(square);
     return squareAt(x + offsetX, y + offsetY);
@@ -119,8 +131,8 @@ export function getMovesAnyPlayer(state: ChessState): Moves {
     const moves: Moves = new Map();
     const captures = new Set();
 
-    SQUARES.forEach(square => {
-        const piece = state.pieces.get(square);
+    SQUARES.forEach(from => {
+        const piece = state.pieces.get(from);
 
         if (piece) {
             let pieceMoveSquares = SQUARES;
@@ -129,22 +141,22 @@ export function getMovesAnyPlayer(state: ChessState): Moves {
             let enPassantsToAllow: EnPassant[] = [];
             let enPassantsToPlay: EnPassant[] = [];
 
-            function notAlly(target: Square) {
-                return pieces.get(target)?.color != piece!.color;
+            function notAlly(to: Square) {
+                return pieces.get(to)?.color != piece!.color;
             }
 
             if (piece.role == "king") {
-                pieceMoveSquares = squareOffsets(square, queenOffsets);
+                pieceMoveSquares = squareOffsets(from, queenOffsets);
             } else if (piece.role == "knight") {
-                pieceMoveSquares = squareOffsets(square, knightOffsets);
+                pieceMoveSquares = squareOffsets(from, knightOffsets);
             } else if (piece.role == "rook") {
-                pieceMoveSquares = squareSightlines(pieces, square, rookOffsets);
+                pieceMoveSquares = squareSightlines(pieces, from, rookOffsets);
             } else if (piece.role == "bishop") {
-                pieceMoveSquares = squareSightlines(pieces, square, bishopOffsets);
+                pieceMoveSquares = squareSightlines(pieces, from, bishopOffsets);
             } else if (piece.role == "queen") {
-                pieceMoveSquares = squareSightlines(pieces, square, queenOffsets);
+                pieceMoveSquares = squareSightlines(pieces, from, queenOffsets);
             } else if (piece.role == "pawn") {
-                const [x, y] = XY(square);
+                const [x, y] = XY(from);
 
                 const push: [number, number] = piece.color == "white" ? [0, 1] : [0, -1];
                 const doublePush: [number, number] = piece.color == "white" ? [0, 2] : [0, -2];
@@ -153,10 +165,10 @@ export function getMovesAnyPlayer(state: ChessState): Moves {
                 const captures: [number, number][] = piece.color == "white" ? [[-1, 1], [1, 1]] : [[-1, -1], [1, -1]];
 
                 const pushes = canDoublePush ? [push, doublePush] : [push];
-                const pushMoves = squareOffsets(square, pushes).filter(target => pieces.get(target) == undefined);
-                const captureMoves = squareOffsets(square, captures).filter(target => {
-                    return pieces.get(target)?.color == flipColor(piece.color)
-                        || target == state.enPassant?.passedSquare;
+                const pushMoves = squareOffsets(from, pushes).filter(to => pieces.get(to) == undefined);
+                const captureMoves = squareOffsets(from, captures).filter(to => {
+                    return pieces.get(to)?.color == flipColor(piece.color)
+                        || to == state.enPassant?.passedSquare;
                 });
 
                 pieceMoveSquares = pushMoves.concat(captureMoves);
@@ -164,8 +176,8 @@ export function getMovesAnyPlayer(state: ChessState): Moves {
                 // remember en passants
                 if (canDoublePush) {
                     enPassantsToAllow.push({
-                        pawnSquare: squareOffset(square, doublePush)!,
-                        passedSquare: squareOffset(square, push)!
+                        pawnSquare: squareOffset(from, doublePush)!,
+                        passedSquare: squareOffset(from, push)!
                     });
                 }
                 captureMoves.map(target => {
@@ -175,24 +187,37 @@ export function getMovesAnyPlayer(state: ChessState): Moves {
                 })
             }
 
-            pieceMoveSquares = pieceMoveSquares.filter(target => notAlly(target));
+            pieceMoveSquares = pieceMoveSquares.filter(to => notAlly(to));
 
+            const pieceMoves = pieceMoveSquares.map(to => {
+                const allowsEnPassant = enPassantsToAllow.find(enPassant => enPassant.pawnSquare == to);
+                const isEnPassant = enPassantsToPlay.find(enPassant => enPassant.passedSquare == to);
 
+                const newPieces = movePiece(state.pieces, from, to);
 
-            const pieceMoves = pieceMoveSquares.map(target => {
-                const allowsEnPassant = enPassantsToAllow.find(enPassant => enPassant.pawnSquare == target);
-                const isEnPassant = enPassantsToPlay.find(enPassant => enPassant.passedSquare == target);
+                if (isEnPassant) {
+                    newPieces.delete(isEnPassant.pawnSquare);
+                }
+
+                // pass turn to other player by default
+                const turnColor = flipColor(state.pieces.get(from)?.color || "white");
+                
+                const result: ChessState = {
+                    ...state,
+                    pieces: newPieces,
+                    turnColor: turnColor,
+                    enPassant: allowsEnPassant,
+                }
 
                 return {
-                    from: square,
-                    to: target,
-                    isCapture: (pieces.get(target) || isEnPassant) != undefined,
-                    allowsEnPassant: allowsEnPassant,
-                    isEnPassant: isEnPassant,
+                    from: from,
+                    to: to,
+                    result: result,
+                    isCapture: (pieces.get(to) || isEnPassant) != undefined,
                 }
             });
 
-            moves.set(square, pieceMoves);
+            moves.set(from, pieceMoves);
         }
 
     })
@@ -202,6 +227,8 @@ export function getMovesAnyPlayer(state: ChessState): Moves {
 
 export function getMoves(state: ChessState): Moves {
     const moves = getMovesAnyPlayer(state);
+
+    // filter out the other player
     for (const square of moves.keys()) {
         if (state.pieces.get(square)?.color != state.turnColor) {
             moves.delete(square);

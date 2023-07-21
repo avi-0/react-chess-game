@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import './App.css';
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { ChessState, Move, flipColor, getMoves, getTelepathyMoves, startingPosition } from './chesslogic';
+import { ChessState, Move, Square, flipColor, getMoves, getTelepathyMoves, movePiece, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
-import { Color } from 'chessground/types';
+import { Color, Pieces } from 'chessground/types';
 import { ToggleButton } from './components/ToggleButton/ToggleButton';
 
 function App() {
@@ -37,34 +37,7 @@ function App() {
     }
 
     function onMovePlayed(move: Move) {
-        // make new Pieces and move piece mover
-        const pieces = new Map(state.pieces);
-        const pieceMoved = state.pieces.get(move.from);
-        if (pieceMoved) {
-            pieces.delete(move.from);
-            pieces.set(move.to, pieceMoved);
-        }
-
-        // apply enPassant if present
-        if (move.isEnPassant) {
-            pieces.delete(move.isEnPassant.pawnSquare);
-        }
-
-        // pass turn to other player, in case of nonstandard move order when cheating
-        let turnColor = flipColor(state.pieces.get(move.from)?.color || "white");
-        if (moveType == "telepathy") {
-            turnColor = flipColor(turnColor);
-        }
-
-        setState({
-            ...state,
-
-            pieces: pieces,
-            turnColor: turnColor,
-            lastMove: [move.from, move.to],
-            justCaptured: move.isCapture,
-            enPassant: move.allowsEnPassant,
-        });
+        setState(move.result);
 
         if (move.isCapture) {
             captureSound.play();
