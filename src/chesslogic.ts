@@ -193,13 +193,48 @@ function getPawnPushes(state: ChessState, from: Square, color: Color): Move[] {
         offsets.push(doublePush);
     }
 
-    return squareOffsets(from, offsets).map((to) => movePiece(state, from, to));
+    return squareOffsets(from, offsets).map((to) => {
+        const move = movePiece(state, from, to);
+
+        if (to == squareOffset(from, doublePush)) {
+            console.log(1)
+            return {
+                ...move,
+                result: {
+                    ...move.result,
+                    enPassant: {
+                        passedSquare: squareOffset(from, push)!,
+                        pawnSquare: to,
+                    }
+                }
+            }
+        }
+
+        return move;
+    });
 }
 
 function getPawnCaptures(state: ChessState, from: Square, color: Color): Move[] {
     const offsets: [number, number][] = color == "white" ? [[-1, 1], [1, 1]] : [[-1, -1], [1, -1]];
 
-    return squareOffsets(from, offsets).map((to) => movePiece(state, from, to));
+    return squareOffsets(from, offsets).map((to) => {
+        if (state.enPassant?.passedSquare == to) {
+            const move = movePiece(state, from, to);
+
+            return {
+                ...move,
+                result: {
+                    ...move.result,
+                    pieces: updatedMap(move.result.pieces, (pieces) => {
+                        pieces.delete(state.enPassant!.pawnSquare);
+                    }),
+                    justCaptured: true,
+                }
+            }
+        }
+
+        return movePiece(state, from, to);
+    });
 }
 
 function squareMoves(state: ChessState, from: Square): Move[] {
@@ -207,12 +242,6 @@ function squareMoves(state: ChessState, from: Square): Move[] {
 
     const piece = pieces.get(from);
     if (piece == undefined) return [];
-
-    let pieceMoveSquares = SQUARES;
-
-    function notAlly(to: Square) {
-        return pieces.get(to)?.color != piece!.color;
-    }
 
     if (piece.role == "king") {
         return getKingMoves(state, from);
