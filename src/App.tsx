@@ -39,7 +39,7 @@ function App() {
     function onMovePlayed(move: Move) {
         setState(move.result);
 
-        if (move.isCapture) {
+        if (move.result.justCaptured) {
             captureSound.play();
         } else {
             moveSound.play();

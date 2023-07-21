@@ -19,7 +19,6 @@ export type Move = {
     from: Square,
     to: Square,
     result: ChessState,
-    isCapture?: boolean,
 }
 export type Moves = Map<Square, Move[]>;
 
@@ -135,77 +134,101 @@ export function getMovesAnyPlayer(state: ChessState): Moves {
     return moves;
 }
 
+function movePiece(state: ChessState, from: Square, to: Square): Move {
+    const result = {
+        ...state,
+        pieces: updatedMap(state.pieces, (pieces) => {
+            const piece = pieces.get(from);
+
+            if (piece) {
+                pieces.set(to, piece);
+                pieces.delete(from);
+            }
+        }),
+        turnColor: flipColor(state.turnColor),
+        justCaptured: state.pieces.get(to) != undefined,
+    }
+
+    return {
+        from: from,
+        to: to,
+        result: result
+    }
+}
+
+function getKingMoves(state: ChessState, from: Square): Move[] {
+    return squareOffsets(from, queenOffsets)
+        .map((to) => movePiece(state, from, to));
+}
+
+function getKnightMoves(state: ChessState, from: Square): Move[] {
+    return squareOffsets(from, knightOffsets)
+        .map((to) => movePiece(state, from, to));
+}
+
+function getRookMoves(state: ChessState, from: Square): Move[] {
+    return squareSightlines(state.pieces, from, rookOffsets)
+        .map((to) => movePiece(state, from, to));
+}
+
+function getBishopMoves(state: ChessState, from: Square): Move[] {
+    return squareSightlines(state.pieces, from, bishopOffsets)
+        .map((to) => movePiece(state, from, to));
+}
+
+function getQueenMoves(state: ChessState, from: Square): Move[] {
+    return squareSightlines(state.pieces, from, queenOffsets)
+        .map((to) => movePiece(state, from, to));
+}
+
+function getPawnPushes(state: ChessState, from: Square, color: Color): Move[] {
+    const [x, y] = XY(from);
+
+    const push: [number, number] = color == "white" ? [0, 1] : [0, -1];
+    const doublePush: [number, number] = color == "white" ? [0, 2] : [0, -2];
+    const canDoublePush = color == "white" ? y == 1 : y == 6;
+
+    const offsets = [push];
+    if (canDoublePush) {
+        offsets.push(doublePush);
+    }
+
+    return squareOffsets(from, offsets).map((to) => movePiece(state, from, to));
+}
+
+function getPawnCaptures(state: ChessState, from: Square, color: Color): Move[] {
+    const offsets: [number, number][] = color == "white" ? [[-1, 1], [1, 1]] : [[-1, -1], [1, -1]];
+
+    return squareOffsets(from, offsets).map((to) => movePiece(state, from, to));
+}
+
 function squareMoves(state: ChessState, from: Square): Move[] {
     const pieces = state.pieces;
 
     const piece = pieces.get(from);
     if (piece == undefined) return [];
-    
+
     let pieceMoveSquares = SQUARES;
-    
+
     function notAlly(to: Square) {
         return pieces.get(to)?.color != piece!.color;
     }
 
     if (piece.role == "king") {
-        pieceMoveSquares = squareOffsets(from, queenOffsets);
+        return getKingMoves(state, from);
     } else if (piece.role == "knight") {
-        pieceMoveSquares = squareOffsets(from, knightOffsets);
+        return getKnightMoves(state, from);
     } else if (piece.role == "rook") {
-        pieceMoveSquares = squareSightlines(pieces, from, rookOffsets);
+        return getRookMoves(state, from);
     } else if (piece.role == "bishop") {
-        pieceMoveSquares = squareSightlines(pieces, from, bishopOffsets);
+        return getBishopMoves(state, from);
     } else if (piece.role == "queen") {
-        pieceMoveSquares = squareSightlines(pieces, from, queenOffsets);
+        return getQueenMoves(state, from);
     } else if (piece.role == "pawn") {
-        const [x, y] = XY(from);
-
-        const push: [number, number] = piece.color == "white" ? [0, 1] : [0, -1];
-        const doublePush: [number, number] = piece.color == "white" ? [0, 2] : [0, -2];
-        const canDoublePush = piece.color == "white" ? y == 1 : y == 6;
-
-        const captures: [number, number][] = piece.color == "white" ? [[-1, 1], [1, 1]] : [[-1, -1], [1, -1]];
-
-        const pushes = canDoublePush ? [push, doublePush] : [push];
-        const pushMoves = squareOffsets(from, pushes).filter(to => pieces.get(to) == undefined);
-        const captureMoves = squareOffsets(from, captures).filter(to => {
-            return pieces.get(to)?.color == flipColor(piece.color)
-                || to == state.enPassant?.passedSquare;
-        });
-
-        pieceMoveSquares = pushMoves.concat(captureMoves);
+        return getPawnPushes(state, from, piece.color).concat(getPawnCaptures(state, from, piece.color));
     }
 
-    pieceMoveSquares = pieceMoveSquares.filter(to => notAlly(to));
-    
-    const pieceMoves = pieceMoveSquares.map(to => {
-        const newPieces = updatedMap(pieces, (pieces) => {
-            const piece = pieces.get(from);
-    
-            if (piece) {
-                pieces.set(to, piece);
-                pieces.delete(from);
-            }
-        });
-
-        // pass turn to other player by default
-        const turnColor = flipColor(state.pieces.get(from)?.color || "white");
-        
-        const result: ChessState = {
-            ...state,
-            pieces: newPieces,
-            turnColor: turnColor,
-        }
-
-        return {
-            from: from,
-            to: to,
-            result: result,
-            isCapture: (pieces.get(to)) != undefined,
-        }
-    });
-
-    return pieceMoves;
+    return [];
 }
 
 export function getMoves(state: ChessState): Moves {
@@ -227,7 +250,7 @@ export function getTelepathyMoves(state: ChessState): Moves {
     const targets = [];
     for (const moveArray of moves.values()) {
         for (const move of moveArray) {
-            if (state.pieces.get(move.from)?.color == state.turnColor && move.isCapture) {
+            if (state.pieces.get(move.from)?.color == state.turnColor && move.result.justCaptured) {
                 targets.push(move.to);
             }
         }
