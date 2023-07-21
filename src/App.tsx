@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { ChessState, Move, Square, flipColor, getMoves, getTelepathyMoves, movePiece, startingPosition } from './chesslogic';
+import { ChessState, Move, Square, flipColor, getMoves, getTelepathyMoves, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
 import { Color, Pieces } from 'chessground/types';
