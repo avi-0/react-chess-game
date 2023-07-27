@@ -156,32 +156,27 @@ function movePiece(state: ChessState, from: Square, to: Square): Move {
     }
 }
 
-function getKingMoves(state: ChessState, from: Square): Move[] {
-    return squareOffsets(from, queenOffsets)
-        .map((to) => movePiece(state, from, to));
+function getKingTargets(state: ChessState, from: Square): Square[] {
+    return squareOffsets(from, queenOffsets);
 }
 
-function getKnightMoves(state: ChessState, from: Square): Move[] {
-    return squareOffsets(from, knightOffsets)
-        .map((to) => movePiece(state, from, to));
+function getKnightTargets(state: ChessState, from: Square): Square[] {
+    return squareOffsets(from, knightOffsets);
 }
 
-function getRookMoves(state: ChessState, from: Square): Move[] {
-    return squareSightlines(state.pieces, from, rookOffsets)
-        .map((to) => movePiece(state, from, to));
+function getRookTargets(state: ChessState, from: Square): Square[] {
+    return squareSightlines(state.pieces, from, rookOffsets);
 }
 
-function getBishopMoves(state: ChessState, from: Square): Move[] {
-    return squareSightlines(state.pieces, from, bishopOffsets)
-        .map((to) => movePiece(state, from, to));
+function getBishopTargets(state: ChessState, from: Square): Square[] {
+    return squareSightlines(state.pieces, from, bishopOffsets);
 }
 
-function getQueenMoves(state: ChessState, from: Square): Move[] {
-    return squareSightlines(state.pieces, from, queenOffsets)
-        .map((to) => movePiece(state, from, to));
+function getQueenTargets(state: ChessState, from: Square): Square[] {
+    return squareSightlines(state.pieces, from, queenOffsets);
 }
 
-function getPawnPushes(state: ChessState, from: Square, color: Color): Move[] {
+function getPawnPushes(state: ChessState, from: Square, color: Color): Square[] {
     const [x, y] = XY(from);
 
     const push: [number, number] = color == "white" ? [0, 1] : [0, -1];
@@ -193,48 +188,35 @@ function getPawnPushes(state: ChessState, from: Square, color: Color): Move[] {
         offsets.push(doublePush);
     }
 
-    return squareOffsets(from, offsets).map((to) => {
-        const move = movePiece(state, from, to);
-
-        if (to == squareOffset(from, doublePush)) {
-            console.log(1)
-            return {
-                ...move,
-                result: {
-                    ...move.result,
-                    enPassant: {
-                        passedSquare: squareOffset(from, push)!,
-                        pawnSquare: to,
-                    }
-                }
-            }
-        }
-
-        return move;
-    });
+    return squareOffsets(from, offsets);
 }
 
-function getPawnCaptures(state: ChessState, from: Square, color: Color): Move[] {
+function getPawnCaptures(state: ChessState, from: Square, color: Color): Square[] {
     const offsets: [number, number][] = color == "white" ? [[-1, 1], [1, 1]] : [[-1, -1], [1, -1]];
 
-    return squareOffsets(from, offsets).map((to) => {
-        if (state.enPassant?.passedSquare == to) {
-            const move = movePiece(state, from, to);
+    return squareOffsets(from, offsets);
+}
 
-            return {
-                ...move,
-                result: {
-                    ...move.result,
-                    pieces: updatedMap(move.result.pieces, (pieces) => {
-                        pieces.delete(state.enPassant!.pawnSquare);
-                    }),
-                    justCaptured: true,
-                }
-            }
-        }
+function getPawnTargets(state: ChessState, from: Square, color: Color): Square[] {
+    return getPawnPushes(state, from, color).concat(getPawnCaptures(state, from, color));
+}
 
-        return movePiece(state, from, to);
-    });
+function getPieceTargets(piece: Piece, state: ChessState, from: Square): Square[] {
+    if (piece.role == "king") {
+        return getKingTargets(state, from);
+    } else if (piece.role == "knight") {
+        return getKnightTargets(state, from);
+    } else if (piece.role == "rook") {
+        return getRookTargets(state, from);
+    } else if (piece.role == "bishop") {
+        return getBishopTargets(state, from);
+    } else if (piece.role == "queen") {
+        return getQueenTargets(state, from);
+    } else if (piece.role == "pawn") {
+        return getPawnTargets(state, from, piece.color);
+    }
+
+    return [];
 }
 
 function squareMoves(state: ChessState, from: Square): Move[] {
@@ -243,21 +225,10 @@ function squareMoves(state: ChessState, from: Square): Move[] {
     const piece = pieces.get(from);
     if (piece == undefined) return [];
 
-    if (piece.role == "king") {
-        return getKingMoves(state, from);
-    } else if (piece.role == "knight") {
-        return getKnightMoves(state, from);
-    } else if (piece.role == "rook") {
-        return getRookMoves(state, from);
-    } else if (piece.role == "bishop") {
-        return getBishopMoves(state, from);
-    } else if (piece.role == "queen") {
-        return getQueenMoves(state, from);
-    } else if (piece.role == "pawn") {
-        return getPawnPushes(state, from, piece.color).concat(getPawnCaptures(state, from, piece.color));
-    }
-
-    return [];
+    return getPieceTargets(piece, state, from)
+        .map((to) => {
+            return movePiece(state, from, to);
+        })
 }
 
 export function getMoves(state: ChessState): Moves {
