@@ -122,18 +122,6 @@ function squareSightlines(pieces: Pieces, square: Square, offsets: [number, numb
     return offsets.flatMap(offset => squareSightline(pieces, square, offset));
 }
 
-export function getMovesAnyPlayer(state: ChessState): Moves {
-    const pieces = state.pieces;
-
-    const moves: Moves = new Map();
-    SQUARES.forEach(from => {
-        const pieceMoves = squareMoves(state, from);
-        moves.set(from, pieceMoves);
-    })
-
-    return moves;
-}
-
 function movePiece(state: ChessState, from: Square, to: Square): Move {
     const result = {
         ...state,
@@ -226,9 +214,17 @@ function squareMoves(state: ChessState, from: Square): Move[] {
     if (piece == undefined) return [];
 
     return getPieceTargets(piece, state, from)
+        .filter((to) => pieces.get(to)?.color != piece.color)
         .map((to) => {
             return movePiece(state, from, to);
         })
+}
+
+export function getMovesAnyPlayer(state: ChessState): Moves {
+    return new Map(
+        SQUARES.map(from => {
+            return [from, squareMoves(state, from)]
+    }))
 }
 
 export function getMoves(state: ChessState): Moves {
