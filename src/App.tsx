@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import './App.css';
 
 import Chessboard from './components/Chessboard/Chessboard';
-import { ChessState, Move, Square, flipColor, getMoves, getTelepathyMoves, startingPosition } from './chesslogic';
+import { ChessState, Move, flipColor, getMoves, startingPosition } from './chesslogic';
 import useStateWithHistory from './hooks/useStateWithHistory';
 import useTimeout from './hooks/useTimeout';
-import { Color, Pieces } from 'chessground/types';
+import { Color } from 'chessground/types';
 import { ToggleButton } from './components/ToggleButton/ToggleButton';
 
 function App() {
@@ -28,8 +28,10 @@ function App() {
         }
     }
 
-    const moves = getMoves(state);
-    const telepathyMoves = getTelepathyMoves(state);
+    const [cheat, setCheat] = useState(false);
+
+    const moves = getMoves(state, cheat);
+    const telepathyMoves = getMoves(state, cheat);
 
     let chessboardMoves = moves;
     if (moveType == "telepathy") {
@@ -66,8 +68,6 @@ function App() {
     useEffect(() => {
         autoflipClear();
     }, []);
-
-    const [cheat, setCheat] = useState(false);
 
     return (
         <div className={`App ${moveType != "normal" && "ability-active"}`}>

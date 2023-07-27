@@ -207,57 +207,24 @@ function getPieceTargets(piece: Piece, state: ChessState, from: Square): Square[
     return [];
 }
 
-function squareMoves(state: ChessState, from: Square): Move[] {
+function squareMoves(state: ChessState, from: Square, cheat?: boolean): Move[] {
     const pieces = state.pieces;
 
     const piece = pieces.get(from);
     if (piece == undefined) return [];
 
     return getPieceTargets(piece, state, from)
-        .filter((to) => pieces.get(to)?.color != piece.color)
+        .filter((to) => cheat || pieces.get(to)?.color != piece.color)
         .map((to) => {
             return movePiece(state, from, to);
         })
 }
 
-export function getMovesAnyPlayer(state: ChessState): Moves {
+export function getMoves(state: ChessState, cheat?: boolean): Moves {
     return new Map(
-        SQUARES.map(from => {
-            return [from, squareMoves(state, from)]
-    }))
-}
-
-export function getMoves(state: ChessState): Moves {
-    const moves = getMovesAnyPlayer(state);
-
-    // filter out the other player
-    for (const square of moves.keys()) {
-        if (state.pieces.get(square)?.color != state.turnColor) {
-            moves.delete(square);
-        }
-    }
-
-    return moves;
-}
-
-export function getTelepathyMoves(state: ChessState): Moves {
-    const moves = getMovesAnyPlayer(state);
-
-    const targets = [];
-    for (const moveArray of moves.values()) {
-        for (const move of moveArray) {
-            if (state.pieces.get(move.from)?.color == state.turnColor && move.result.justCaptured) {
-                targets.push(move.to);
-            }
-        }
-    }
-
-    // now filter out to only keep the moves we want from other player
-    for (const square of moves.keys()) {
-        if (!targets.includes(square)) {
-            moves.delete(square);
-        }
-    }
-
-    return moves;
+        SQUARES
+            .filter(from => cheat || state.pieces.get(from)?.color == state.turnColor)
+            .map(from => {
+                return [from, squareMoves(state, from, cheat)]
+            }))
 }
