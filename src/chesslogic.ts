@@ -123,18 +123,38 @@ function squareSightlines(pieces: Pieces, square: Square, offsets: [number, numb
 }
 
 function movePiece(state: ChessState, from: Square, to: Square): Move {
+    const piece = state.pieces.get(from);
+
+    let enPassant: EnPassant | undefined = undefined;
+    if (piece?.role == "pawn") {
+        const [fromX, fromY] = XY(from);
+        const [toX, toY] = XY(to);
+
+        if (Math.abs(fromY - toY) == 2) {
+            enPassant = {
+                pawnSquare: to,
+                passedSquare: squareAt(toX, (fromY + toY) / 2)!,
+            }
+        }
+    }
+
+    const isEnPassantCapture = piece?.role == "pawn" && to == state.enPassant?.passedSquare;
+
     const result = {
         ...state,
         pieces: updatedMap(state.pieces, (pieces) => {
-            const piece = pieces.get(from);
-
             if (piece) {
                 pieces.set(to, piece);
                 pieces.delete(from);
             }
+
+            if (isEnPassantCapture) {
+                pieces.delete(state.enPassant!.pawnSquare);
+            }
         }),
         turnColor: flipColor(state.turnColor),
-        justCaptured: state.pieces.get(to) != undefined,
+        justCaptured: state.pieces.get(to) != undefined || isEnPassantCapture,
+        enPassant: enPassant,
     }
 
     return {
@@ -186,7 +206,13 @@ function getPawnCaptures(state: ChessState, from: Square, color: Color): Square[
 }
 
 function getPawnTargets(state: ChessState, from: Square, color: Color): Square[] {
-    return getPawnPushes(state, from, color).concat(getPawnCaptures(state, from, color));
+    const pushTargets = getPawnPushes(state, from, color)
+        .filter((to) => state.pieces.get(to) == undefined);
+    const captureTargets = getPawnCaptures(state, from, color)
+        .filter((to) => state.pieces.get(to)?.color == flipColor(color)
+            || to == state.enPassant?.passedSquare);
+
+    return pushTargets.concat(captureTargets);
 }
 
 function getPieceTargets(piece: Piece, state: ChessState, from: Square): Square[] {
