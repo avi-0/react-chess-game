@@ -9,7 +9,7 @@ type Props = {
 
 export function ToggleButton({ active, onClick, children }: Props) {
     return <button 
-        className={`ToggleButton ${active && "ToggleButton-active"}`}
+        className={`btn ${active ? "btn-primary" : "btn-secondary"}`}
         onClick={onClick}>
         {children}
     </button>

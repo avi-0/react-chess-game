@@ -10,10 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
     "@uidotdev/usehooks": "^2.0.1",
+    "bootstrap": "^5.3.1",
     "chessground": "^8.3.12",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "sass": "^1.65.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.37",

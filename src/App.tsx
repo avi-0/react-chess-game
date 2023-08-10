@@ -78,17 +78,22 @@ function App() {
                 cheat={cheat} />
 
             <div className='App-sidebar'>
-                <button onClick={reset}>Reset</button>
-                <button onClick={flip}>Flip</button>
+                <button className="btn btn-primary" onClick={reset}>Reset</button>
+                <button className="btn btn-primary" onClick={flip}>Flip</button>
 
-                <label>
-                    <input type="checkbox" checked={autoflip} onChange={e => setAutoflip(e.target.checked)} />
-                    Autoflip
-                </label>
-                <label>
-                    <input type="checkbox" checked={cheat} onChange={e => setCheat(e.target.checked)} />
-                    Cheat
-                </label>
+                <div className="form-check">
+                    <input type="checkbox" className='form-check-input' id='cheat' checked={cheat} onChange={e => setCheat(e.target.checked)} />
+                    <label className='form-check-label' htmlFor='cheat'>
+                        Cheat
+                    </label>
+                </div>
+
+                <div className="form-check">
+                    <input type="checkbox" className='form-check-input' id='autoflip' checked={autoflip} onChange={e => setAutoflip(e.target.checked)} />
+                    <label className='form-check-label' htmlFor='autoflip'>
+                        Autoflip
+                    </label>
+                </div>
 
                 <p>Abilities:</p>
                 <ToggleButton active={moveType == "telepathy"} onClick={() => selectMoveType("telepathy")}>Telepathy</ToggleButton>
@@ -96,8 +101,8 @@ function App() {
 
                 <div className="flexspace" />
 
-                <button onClick={undo}>Undo</button>
-                <button onClick={redo}>Redo</button>
+                <button className="btn btn-primary" onClick={undo}>Undo</button>
+                <button className="btn btn-primary" onClick={redo}>Redo</button>
             </div>
         </div>
     )
